@@ -18,6 +18,11 @@ const NavigationMenu = ({ className, ...props }) => (
       </NavigationMenuItem>
       <NavigationMenuItem>
         <NavigationMenuLink asChild>
+          <a href="#contributions">Contributions</a>
+        </NavigationMenuLink>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <NavigationMenuLink asChild>
           <a href="#experience">Experience</a>
         </NavigationMenuLink>
       </NavigationMenuItem>

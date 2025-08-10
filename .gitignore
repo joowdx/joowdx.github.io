@@ -9,7 +9,6 @@ lerna-debug.log*
 
 # Dependency and build  directories
 node_modules
-dist
 dist-ssr
 *.local
 public/assets
