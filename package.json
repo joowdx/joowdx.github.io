@@ -2,6 +2,7 @@
   "name": "joowdx.github.io",
   "homepage": "joowdx.dev",
   "private": true,
+  "license": "MIT",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
