@@ -26,7 +26,7 @@ Source for [joowdx.dev](https://joowdx.dev), a personal portfolio site. The publ
 ## Editing content
 
 - Work history: [`src/data/experience.js`](src/data/experience.js)
-- Projects: [`src/data/projects.js`](src/data/projects.js). Give a project an `image` for a screenshot card or a `source` for a repo card; a `url` gets a live/offline badge.
+- Projects: [`src/data/projects.js`](src/data/projects.js). Give a project an `image` for a screenshot card or a `source` for a repo card; a `url` gets a live/offline badge. Set `earlier: true` to move it into the compact Earlier work list.
 - Capability cards: [`src/data/capabilities.js`](src/data/capabilities.js)
 - Scene feel: `TUNING` at the top of [`src/scene/index.js`](src/scene/index.js) (loop speed, jump height, pop angle, street speed, auto-trick cadence). Colours live in [`src/scene/materials.js`](src/scene/materials.js); `COLORS.fog` must match `--plum` in `styles.css` so the horizon has no seam.
 

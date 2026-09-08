@@ -905,9 +905,10 @@ footer {
 }
 .card-top {
   display: flex;
+  flex-wrap: wrap; /* long titles or hostnames drop the meta to its own line instead of overflowing */
   justify-content: space-between;
   align-items: baseline;
-  gap: 12px;
+  gap: 6px 12px;
 }
 .card-top h3 {
   margin: 0;
@@ -971,6 +972,57 @@ footer {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--cream-45);
+}
+
+/* wide card: an odd last featured project spans both columns and lays out side by side */
+@media (min-width: 800px) {
+  .proj-grid > .span {
+    grid-column: 1 / -1;
+  }
+  .card-wide {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: none;
+  }
+  .card-wide .card-media {
+    min-height: 260px;
+  }
+  .card-wide .card-body {
+    padding: 30px 34px 32px;
+    align-content: center;
+  }
+}
+
+/* earlier work: a quieter sub-heading and compact cards without media */
+.earlier {
+  margin-top: clamp(48px, 7vh, 80px);
+}
+.sub-head {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.sub-head p:last-child {
+  margin: 0;
+  color: var(--cream-45);
+  font-size: 15px;
+}
+.card-compact {
+  grid-template-rows: none;
+  padding: 22px 24px 24px;
+  gap: 10px;
+  align-content: start;
+  transform: none;
+}
+.card-compact h3 {
+  font-size: 18px;
+}
+.card-compact p {
+  margin: 0;
+  color: var(--cream-70);
+  font-size: 14.5px;
+}
+.card-compact .card-actions {
+  margin-top: 4px;
 }
 
 /* footer */
