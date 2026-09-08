@@ -459,6 +459,9 @@ footer {
 .btn-ghost:hover svg {
   transform: translate(2px, -2px);
 }
+.no-3d .hint {
+  display: none; /* nothing to tap when WebGL is unavailable */
+}
 .hint {
   position: absolute;
   right: 6vw;

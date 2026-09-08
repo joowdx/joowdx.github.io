@@ -26,7 +26,10 @@ export function startScene({ hero, canvas, hint }) {
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-  } catch {
+  } catch (err) {
+    // no WebGL (old browser, privacy extension, GPU acceleration off): keep the hero, drop the cat, say why
+    console.warn('[hero] 3D scene disabled: no WebGL context.', err);
+    hero.classList.add('no-3d');
     canvas.remove();
     return;
   }
