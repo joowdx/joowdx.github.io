@@ -25,6 +25,12 @@
         color-scheme: dark;
       }
     </style>
+    <!-- if the module script never runs (blocked, too old a browser), still show the hero copy after a moment -->
+    <script>
+      setTimeout(function () {
+        document.documentElement.classList.add('fonts-ready');
+      }, 2000);
+    </script>
     <!-- self-hosted fonts (OFL, see public/fonts), preloaded so text is set in Urbanist from the first paint -->
     <link rel="preload" href="/fonts/urbanist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/dm-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
