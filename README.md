@@ -20,7 +20,8 @@ Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Th
 | [`src/ui/`](src/ui/)               | Page behaviour: nav, menu, stars, scroll reveals, card tilt, local time, live-status probes                          |
 | [`src/scene/`](src/scene/)         | The Three.js hero: `index.js` (loop, camera, lights), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `materials.js` |
 | [`src/assets/`](src/assets/)       | Images imported by the data modules and the HTML                                                                     |
-| [`public/`](public/)               | Static files copied as-is: `favicon.ico`, `CNAME`, `fonts/`                                                          |
+| [`docs/`](docs/)                   | Build output, committed; GitHub Pages publishes this folder straight from `master`                                   |
+| [`public/`](public/)               | Static files copied as-is: `favicon.ico`, `CNAME`, `fonts/`, `.nojekyll`                                             |
 | [`prototype/`](prototype/)         | The standalone single-file prototype the site was ported from (safe to delete)                                       |
 
 ## Editing content
@@ -39,7 +40,7 @@ Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Th
 ```bash
 npm install          # install dependencies
 npm run dev          # local dev server (Vite)
-npm run build        # production build → dist/
+npm run build        # production build → docs/
 npm run preview      # preview the production build locally
 npm run lint         # ESLint (with --fix)
 npm run format       # Prettier on src/
@@ -47,12 +48,12 @@ npm run format       # Prettier on src/
 
 ## Deploy
 
-Production output is written to `dist/`. Deploy to GitHub Pages with:
+GitHub Pages publishes the `docs/` folder of `master` directly (repo Settings → Pages → "Deploy from a branch" → `master`, `/docs`). There is no deploy script, no `gh-pages` branch and no Actions workflow: build, commit, push.
 
 ```bash
-npm run deploy
+npm run build
 ```
 
-That runs `npm run build`, splits the committed `dist/` history out with `git subtree split`, and force-pushes it to the `gh-pages` branch. The force is deliberate: `gh-pages` is a build artifact regenerated from `dist/`, and a plain `git subtree push` is rejected as non-fast-forward as soon as anything is committed to `gh-pages` outside this repo (for example editing a file on GitHub). The branch is never deleted, because deleting it resets the Pages custom-domain setting. Commit `dist/` before deploying; the split only sees committed files.
+Commit the updated `docs/` together with the source change and push. GitHub publishes within about a minute. Rebuild before every commit that should go live, otherwise the site lags the source.
 
-Custom domain **joowdx.qzz.io** is declared in [`public/CNAME`](public/CNAME), which Vite copies into every build so the domain survives each deploy. In the GitHub repo settings, Pages should use the `gh-pages` branch (root), and the custom domain should match your DNS and the `CNAME` file. DNS for the domain is a `CNAME` record pointing at `joowdx.github.io`; change the domain by editing `public/CNAME` (DNS first, then deploy).
+Custom domain **joowdx.qzz.io** is declared in [`public/CNAME`](public/CNAME), which Vite copies into `docs/` on every build. DNS for the domain is a `CNAME` record pointing at `joowdx.github.io`; change the domain by editing `public/CNAME` (DNS first, then build and push). `public/.nojekyll` makes Pages serve the folder as-is instead of running it through Jekyll.

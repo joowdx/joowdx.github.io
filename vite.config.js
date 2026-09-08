@@ -5,7 +5,7 @@ export default defineConfig({
   root: path.resolve(import.meta.dirname, './src'),
   publicDir: path.resolve(import.meta.dirname, './public'),
   build: {
-    outDir: path.resolve(import.meta.dirname, './dist'),
+    outDir: path.resolve(import.meta.dirname, './docs'),
     emptyOutDir: true,
     rollupOptions: {
       output: {
