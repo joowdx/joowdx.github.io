@@ -1,6 +1,6 @@
 # Joowdx
 
-Source for [joowdx.dev](https://joowdx.dev), a personal portfolio site. The public build is published from this repo to GitHub Pages ([joowdx.github.io](https://github.com/joowdx/joowdx.github.io)).
+Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. The public build is published from this repo to GitHub Pages ([joowdx.github.io](https://github.com/joowdx/joowdx.github.io)).
 
 ## Stack
 
@@ -55,4 +55,4 @@ npm run deploy
 
 That runs `npm run build`, splits the committed `dist/` history out with `git subtree split`, and force-pushes it to the `gh-pages` branch. The force is deliberate: `gh-pages` is a build artifact regenerated from `dist/`, and a plain `git subtree push` is rejected as non-fast-forward as soon as anything is committed to `gh-pages` outside this repo (for example editing a file on GitHub). The branch is never deleted, because deleting it resets the Pages custom-domain setting. Commit `dist/` before deploying; the split only sees committed files.
 
-Custom domain **joowdx.dev** is declared in [`public/CNAME`](public/CNAME), which Vite copies into every build so the domain survives each deploy. In the GitHub repo settings, Pages should use the `gh-pages` branch (root), and the custom domain should match your DNS and the `CNAME` file.
+Custom domain **joowdx.qzz.io** is declared in [`public/CNAME`](public/CNAME), which Vite copies into every build so the domain survives each deploy. In the GitHub repo settings, Pages should use the `gh-pages` branch (root), and the custom domain should match your DNS and the `CNAME` file. DNS for the domain is a `CNAME` record pointing at `joowdx.github.io`; change the domain by editing `public/CNAME` (DNS first, then deploy).
