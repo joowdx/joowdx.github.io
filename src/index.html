@@ -1,12 +1,180 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Joowd</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Joowd — full-stack developer</title>
+    <meta name="description" content="Joowd is a full-stack developer building scalable web applications: intuitive frontends, robust backends, clean architecture." />
+    <meta name="theme-color" content="#07070d" />
+    <meta property="og:title" content="Joowd — full-stack developer" />
+    <meta property="og:description" content="Builds that stick the landing. Full-stack web apps: intuitive frontends, robust backends, clean architecture." />
+    <meta property="og:url" content="https://joowdx.dev" />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/main.jsx"></script>
+    <div class="stars" id="stars" aria-hidden="true"></div>
+
+    <header class="nav" id="nav">
+      <a class="brand" href="#top" aria-label="Joowd, back to top">joowd<span class="dot" aria-hidden="true"></span></a>
+      <nav class="links" aria-label="Sections">
+        <a href="#about">About</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+      </nav>
+      <div class="nav-right">
+        <a class="icon-btn" href="https://github.com/joowdx" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-github" /></svg>
+        </a>
+        <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu">Menu</button>
+      </div>
+    </header>
+    <div class="menu" id="menu" aria-label="Menu">
+      <a class="big" href="#about" style="--i: 0">About</a>
+      <a class="big" href="#capabilities" style="--i: 1">Capabilities</a>
+      <a class="big" href="#experience" style="--i: 2">Experience</a>
+      <a class="big" href="#projects" style="--i: 3">Projects</a>
+      <div class="socials">
+        <a href="https://github.com/joowdx" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a href="https://steamcommunity.com/id/joowdx" target="_blank" rel="noopener noreferrer">Steam ↗</a>
+      </div>
+    </div>
+
+    <main id="top">
+      <!-- hero: the cat -->
+      <section class="hero" id="hero" aria-label="Intro">
+        <div class="sky" aria-hidden="true"></div>
+        <div class="moon" aria-hidden="true"></div>
+        <div class="glow" aria-hidden="true"></div>
+        <div class="haze" aria-hidden="true"></div>
+        <canvas
+          class="stage"
+          id="stage"
+          tabindex="0"
+          role="button"
+          aria-label="A calico cat on a skateboard, doing an ollie on loop down a city street at night. Press to queue a trick."
+        ></canvas>
+
+        <div class="hero-copy">
+          <p class="eyebrow" style="--i: 0">Joowd · Full-stack developer</p>
+          <h1 style="--i: 1">Builds that stick the&nbsp;landing.</h1>
+          <p style="--i: 2">
+            Five-plus years shipping scalable web apps: intuitive frontends, robust backends, clean architecture. Currently engineering LLM-assisted
+            underwriting services at Simple&nbsp;Code&nbsp;AI.
+          </p>
+          <div class="cta-row" style="--i: 3">
+            <a class="btn btn-primary" href="#projects">See the work <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-down" /></svg></a>
+            <a class="btn btn-ghost" href="https://github.com/joowdx" target="_blank" rel="noopener noreferrer"
+              >GitHub <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-out" /></svg></a
+            >
+          </div>
+        </div>
+        <p class="hint" id="hint" aria-hidden="true"><i></i><span>tap the cat · next: kickflip</span></p>
+      </section>
+
+      <!-- about -->
+      <section class="section" id="about">
+        <div class="wrap about-grid">
+          <div class="about-text reveal">
+            <p class="eyebrow">About</p>
+            <h2>Making complex systems feel simple.</h2>
+            <p>
+              Over five years of full-stack development, mostly on <b>PHP and Laravel</b>, with cloud architecture and, lately,
+              <b>Python services and LLM pipelines</b>. I care about elegant solutions to messy problems, and about sharing what I learn with other
+              developers.
+            </p>
+            <p>
+              I've built for a provincial government, a water district, and now an AI startup in financing. Same habits every time: clean code,
+              efficient architecture, interfaces people actually enjoy using.
+            </p>
+          </div>
+          <div class="portrait-wrap reveal" style="--i: 2">
+            <div class="portrait">
+              <img src="./assets/joowd.webp" alt="Joowd sitting outdoors on a camping chair, cap and sunglasses on, palm trees behind" width="300" height="300" />
+            </div>
+            <div class="now">
+              <p><span class="k">Now</span><span>Software Engineer at Simple Code AI</span></p>
+              <p><span class="k live">Local</span><span><span id="localtime">--:--</span> · Philippines</span></p>
+              <p><span class="k">Find me</span><span><a href="https://github.com/joowdx" target="_blank" rel="noopener noreferrer">@joowdx</a></span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- capabilities -->
+      <section class="section" id="capabilities">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <div><p class="eyebrow">Capabilities</p><h2>What I ship.</h2></div>
+            <p>Four lanes, one habit: build it so it stays fast and maintainable long after launch.</p>
+          </div>
+          <div class="cap-grid" id="cap-grid"></div>
+        </div>
+      </section>
+
+      <!-- experience -->
+      <section class="section" id="experience">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <div><p class="eyebrow">Experience</p><h2>Where I've worked.</h2></div>
+            <p>Three teams, six years, one stack that keeps growing.</p>
+          </div>
+          <div id="xp-list"></div>
+        </div>
+      </section>
+
+      <!-- projects -->
+      <section class="section" id="projects">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <div><p class="eyebrow">Projects</p><h2>Selected work.</h2></div>
+            <p>Internal tools for a provincial government, plus two side projects that shipped.</p>
+          </div>
+          <div class="proj-grid" id="proj-grid"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <div class="foot-cta reveal">
+          <h2>Let's build something remarkable.</h2>
+          <div class="foot-links">
+            <a class="btn btn-primary" href="https://github.com/joowdx" target="_blank" rel="noopener noreferrer"
+              >GitHub <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-out" /></svg></a
+            >
+            <a class="btn btn-ghost" href="https://steamcommunity.com/id/joowdx" target="_blank" rel="noopener noreferrer"
+              >Steam <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-out" /></svg></a
+            >
+          </div>
+        </div>
+        <div class="foot-bottom">
+          <span>© <span id="year">2026</span> Joowd. All rights reserved.</span>
+          <a class="totop" href="#top">Back to top <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-up" /></svg></a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- shared icon sprites -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <path
+          id="i-github"
+          d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+        />
+        <path id="i-out" d="M7 17 17 7M8 7h9v9" />
+        <path id="i-down" d="M12 5v14M5 12l7 7 7-7" />
+        <path id="i-up" d="M12 19V5M5 12l7-7 7 7" />
+      </defs>
+    </svg>
+
+    <script type="module" src="./main.js"></script>
   </body>
 </html>

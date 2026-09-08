@@ -4,26 +4,31 @@ Source for [joowdx.dev](https://joowdx.dev), a personal portfolio site. The publ
 
 ## Stack
 
-- [Vite](https://vitejs.dev/) and [React 19](https://react.dev/)
-- [Tailwind CSS v4](https://tailwindcss.com/) via `@tailwindcss/vite`
-- [Radix UI](https://www.radix-ui.com/) primitives
-- [Motion](https://motion.dev/) for animation
-- [Lucide React](https://lucide.dev/) and [Simple Icons](https://simpleicons.org/) for icons
-- [Embla Carousel](https://www.embla-carousel.com/) where carousels are used
+- [Vite](https://vitejs.dev/) with plain ES modules and CSS, no UI framework
+- [Three.js](https://threejs.org/) for the hero: a calico cat looping ollies down a city street at midnight
+- Google Fonts: Urbanist (display and body) and DM Mono (labels)
 
 ## Project structure
 
+| Path                                     | Role                                                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [`src/index.html`](src/index.html)       | Page shell and static copy (nav, hero, about, footer)                                                  |
+| [`src/styles.css`](src/styles.css)       | Design tokens and all styles                                                                           |
+| [`src/main.js`](src/main.js)             | Entry: renders the data-driven sections, wires page behaviour, starts the scene                        |
+| [`src/data/`](src/data/)                 | Content: `experience.js`, `projects.js`, `capabilities.js`, `site.js`                                  |
+| [`src/sections/`](src/sections/)         | Renderers for the data-driven sections (capabilities, experience, projects)                            |
+| [`src/ui/`](src/ui/)                     | Page behaviour: nav, menu, stars, scroll reveals, card tilt, local time, live-status probes             |
+| [`src/scene/`](src/scene/)               | The Three.js hero: `index.js` (loop, camera, lights), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `materials.js` |
+| [`src/assets/`](src/assets/)             | Images imported by the data modules and the HTML                                                       |
+| [`public/`](public/)                     | Static files copied as-is: `favicon.ico`, `CNAME`                                                      |
+| [`prototype/`](prototype/)               | The standalone single-file prototype the site was ported from (safe to delete)                         |
 
-| Path                                             | Role                                                                      |
-| ------------------------------------------------ | ------------------------------------------------------------------------- |
-| `[src/main.jsx](src/main.jsx)`                   | App entry: root layout with navbar, page, footer                          |
-| `[src/page.jsx](src/page.jsx)`                   | Composes main sections                                                    |
-| `[src/sections/](src/sections/)`                 | Page sections: `hero`, `about`, `contributions`, `experience`, `projects` |
-| `[src/components/](src/components/)`             | Shared components, including `[ui/](src/components/ui/)`                  |
-| `[src/config/socials.js](src/config/socials.js)` | Social links and related config                                           |
-| `[src/index.html](src/index.html)`               | HTML shell for Vite                                                       |
-| `[public/](public/)`                             | Static assets served as-is (e.g. favicon)                                 |
+## Editing content
 
+- Work history: [`src/data/experience.js`](src/data/experience.js)
+- Projects: [`src/data/projects.js`](src/data/projects.js). Give a project an `image` for a screenshot card or a `source` for a repo card; a `url` gets a live/offline badge.
+- Capability cards: [`src/data/capabilities.js`](src/data/capabilities.js)
+- Scene feel: `TUNING` at the top of [`src/scene/index.js`](src/scene/index.js) (loop speed, jump height, pop angle, street speed, auto-trick cadence). Colours live in [`src/scene/materials.js`](src/scene/materials.js); `COLORS.fog` must match `--plum` in `styles.css` so the horizon has no seam.
 
 ## Prerequisites
 
@@ -50,5 +55,4 @@ npm run deploy
 
 That runs `npm run build` then pushes the `dist/` folder to the `gh-pages` branch via `git subtree push --prefix dist origin gh-pages`.
 
-Custom domain **joowdx.dev** is declared in `[CNAME](CNAME)`. In the GitHub repo settings, Pages should use the `gh-pages` branch (root), and the custom domain should match your DNS and the `CNAME` file.
-
+Custom domain **joowdx.dev** is declared in [`public/CNAME`](public/CNAME), which Vite copies into every build so the domain survives each deploy. In the GitHub repo settings, Pages should use the `gh-pages` branch (root), and the custom domain should match your DNS and the `CNAME` file.

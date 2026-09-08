@@ -1,22 +1,17 @@
-import path from "path";
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import path from 'node:path';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  root: path.resolve(__dirname, './src'),
-  publicDir: path.resolve(__dirname, './public'),
+  root: path.resolve(import.meta.dirname, './src'),
+  publicDir: path.resolve(import.meta.dirname, './public'),
   build: {
-    outDir: path.resolve(__dirname, './dist'),
+    outDir: path.resolve(import.meta.dirname, './dist'),
     emptyOutDir: true,
-  },
-  esbuild: {
-    jsx: 'automatic',
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+    rollupOptions: {
+      output: {
+        // three is the one big dependency; keep it in its own long-cached chunk
+        manualChunks: { three: ['three'] },
+      },
     },
   },
 });
