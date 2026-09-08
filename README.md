@@ -53,6 +53,6 @@ Production output is written to `dist/`. Deploy to GitHub Pages with:
 npm run deploy
 ```
 
-That runs `npm run build` then pushes the `dist/` folder to the `gh-pages` branch via `git subtree push --prefix dist origin gh-pages`.
+That runs `npm run build`, splits the committed `dist/` history out with `git subtree split`, and force-pushes it to the `gh-pages` branch. The force is deliberate: `gh-pages` is a build artifact regenerated from `dist/`, and a plain `git subtree push` is rejected as non-fast-forward as soon as anything is committed to `gh-pages` outside this repo (for example editing a file on GitHub). The branch is never deleted, because deleting it resets the Pages custom-domain setting. Commit `dist/` before deploying; the split only sees committed files.
 
 Custom domain **joowdx.dev** is declared in [`public/CNAME`](public/CNAME), which Vite copies into every build so the domain survives each deploy. In the GitHub repo settings, Pages should use the `gh-pages` branch (root), and the custom domain should match your DNS and the `CNAME` file.

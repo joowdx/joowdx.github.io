@@ -11,7 +11,7 @@
     "lint": "eslint . --fix",
     "preview": "vite preview",
     "format": "prettier --write src/",
-    "deploy": "npm run build && git subtree push --prefix dist origin gh-pages"
+    "deploy": "npm run build && git push --force origin $(git subtree split --prefix dist master):gh-pages"
   },
   "dependencies": {
     "three": "^0.170.0"
