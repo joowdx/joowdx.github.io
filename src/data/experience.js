@@ -14,7 +14,21 @@ export const experience = [
     period: '2021 — 2026',
     description:
       'Developed and maintained internal applications for the province, with a focus on user experience and performance. Shipped the Helpdesk and Clockwork systems below, among others, on a modern PHP stack.',
-    technologies: ['PHP', 'JavaScript', 'Laravel', 'Livewire', 'Filament', 'Vue', 'React', 'MySQL', 'PostgreSQL', 'Redis', 'Docker', 'Ubuntu', 'Azure'],
+    technologies: [
+      'PHP',
+      'JavaScript',
+      'Laravel',
+      'Livewire',
+      'Filament',
+      'Vue',
+      'React',
+      'MySQL',
+      'PostgreSQL',
+      'Redis',
+      'Docker',
+      'Ubuntu',
+      'Azure',
+    ],
   },
   {
     company: 'Digos Water District',

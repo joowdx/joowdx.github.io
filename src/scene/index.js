@@ -115,7 +115,7 @@ export function startScene({ hero, canvas, hint }) {
     const aspect = w / h,
       mobile = aspect < 0.85;
     camera.aspect = aspect;
-    camera.fov = Math.max(36, ((2 * Math.atan(2.45 / (CAM_DIST * aspect))) * 180) / Math.PI);
+    camera.fov = Math.max(36, (2 * Math.atan(2.45 / (CAM_DIST * aspect)) * 180) / Math.PI);
     camera.position.set(0, mobile ? 1.95 : 1.7, CAM_DIST);
     target.set(0, mobile ? 0.35 : 1.15, 0);
     stage.position.x = mobile ? 0 : 1.15; // leave the left third to the copy on wide screens

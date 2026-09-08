@@ -17,7 +17,8 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
   stage.add(ground);
   const DASH_LOOP = 42,
     dashGeo = BOX(1.3, 0.01, 0.08);
-  for (let i = 0; i < 14; i++) belt(put(dashGeo, M.paint, stage, { p: [-DASH_LOOP / 2 + i * 3, 0.006, -1.5], shadow: false, receive: true }), 1, DASH_LOOP);
+  for (let i = 0; i < 14; i++)
+    belt(put(dashGeo, M.paint, stage, { p: [-DASH_LOOP / 2 + i * 3, 0.006, -1.5], shadow: false, receive: true }), 1, DASH_LOOP);
   put(BOX(400, 0.01, 0.08), M.paint, stage, { p: [0, 0.006, 2.45], shadow: false }); // edge line
   put(BOX(400, 0.16, 4.7), M.curb, stage, { p: [0, 0.08, -4.95], shadow: false, receive: true }); // sidewalk: a wide promenade up to the shopfronts
   {
@@ -65,7 +66,14 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     put(BOX(0.24, 0.08, 0.42), M.pole, g, { p: [0, 2.72, 0.82], shadow: false });
     put(BOX(0.17, 0.03, 0.3), M.lamp, g, { p: [0, 2.665, 0.82], shadow: false });
     const glow = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: tex.glowTex, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
+      new THREE.SpriteMaterial({
+        map: tex.glowTex,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        fog: false,
+      }),
     );
     glow.position.set(0, 2.6, 0.82);
     glow.scale.setScalar(1.9);
