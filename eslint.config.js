@@ -13,7 +13,7 @@ export default [
     },
   },
   {
-    ignores: ['node_modules', 'docs', 'public', 'prototype'],
+    ignores: ['node_modules', 'dist', 'public', 'prototype'],
   },
   prettier,
 ];

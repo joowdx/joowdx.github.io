@@ -1,6 +1,6 @@
 # Joowdx
 
-Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. The public build is published from this repo to GitHub Pages ([joowdx.github.io](https://github.com/joowdx/joowdx.github.io)).
+Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Every push to `master` is built and published to GitHub Pages ([joowdx.github.io](https://github.com/joowdx/joowdx.github.io)) by GitHub Actions.
 
 ## Stack
 
@@ -10,19 +10,20 @@ Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Th
 
 ## Project structure
 
-| Path                               | Role                                                                                                                 |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| [`src/index.html`](src/index.html) | Page shell and static copy (nav, hero, about, footer)                                                                |
-| [`src/styles.css`](src/styles.css) | Design tokens and all styles                                                                                         |
-| [`src/main.js`](src/main.js)       | Entry: renders the data-driven sections, wires page behaviour, starts the scene                                      |
-| [`src/data/`](src/data/)           | Content: `experience.js`, `projects.js`, `capabilities.js`, `site.js`                                                |
-| [`src/sections/`](src/sections/)   | Renderers for the data-driven sections (capabilities, experience, projects)                                          |
-| [`src/ui/`](src/ui/)               | Page behaviour: nav, menu, stars, scroll reveals, card tilt, local time, live-status probes                          |
-| [`src/scene/`](src/scene/)         | The Three.js hero: `index.js` (loop, camera, lights), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `materials.js` |
-| [`src/assets/`](src/assets/)       | Images imported by the data modules and the HTML                                                                     |
-| [`docs/`](docs/)                   | Build output, committed; GitHub Pages publishes this folder straight from `master`                                   |
-| [`public/`](public/)               | Static files copied as-is: `favicon.ico`, `CNAME`, `fonts/`, `.nojekyll`                                             |
-| [`prototype/`](prototype/)         | The standalone single-file prototype the site was ported from (safe to delete)                                       |
+| Path                                                           | Role                                                                                                                 |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [`src/index.html`](src/index.html)                             | Page shell and static copy (nav, hero, about, footer)                                                                |
+| [`src/styles.css`](src/styles.css)                             | Design tokens and all styles                                                                                         |
+| [`src/main.js`](src/main.js)                                   | Entry: renders the data-driven sections, wires page behaviour, starts the scene                                      |
+| [`src/data/`](src/data/)                                       | Content: `experience.js`, `projects.js`, `capabilities.js`, `site.js`                                                |
+| [`src/sections/`](src/sections/)                               | Renderers for the data-driven sections (capabilities, experience, projects)                                          |
+| [`src/ui/`](src/ui/)                                           | Page behaviour: nav, menu, stars, scroll reveals, card tilt, local time, live-status probes                          |
+| [`src/scene/`](src/scene/)                                     | The Three.js hero: `index.js` (loop, camera, lights), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `materials.js` |
+| [`src/assets/`](src/assets/)                                   | Images imported by the data modules and the HTML                                                                     |
+| [`public/`](public/)                                           | Static files copied as-is: `favicon.ico`, `fonts/`                                                                   |
+| `dist/`                                                        | Build output of `npm run build`; ignored by git, CI builds its own                                                   |
+| [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) | Builds and deploys to GitHub Pages on every push to `master`                                                         |
+| [`prototype/`](prototype/)                                     | The standalone single-file prototype the site was ported from (safe to delete)                                       |
 
 ## Editing content
 
@@ -40,7 +41,7 @@ Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Th
 ```bash
 npm install          # install dependencies
 npm run dev          # local dev server (Vite)
-npm run build        # production build → docs/
+npm run build        # production build → dist/
 npm run preview      # preview the production build locally
 npm run lint         # ESLint (with --fix)
 npm run format       # Prettier on src/
@@ -48,12 +49,6 @@ npm run format       # Prettier on src/
 
 ## Deploy
 
-GitHub Pages publishes the `docs/` folder of `master` directly (repo Settings → Pages → "Deploy from a branch" → `master`, `/docs`). There is no deploy script, no `gh-pages` branch and no Actions workflow: build, commit, push.
+Push to `master`. The [deploy workflow](.github/workflows/deploy.yml) runs `npm ci` and `npm run build`, then publishes `dist/` to GitHub Pages (Settings → Pages → Source: GitHub Actions). The site updates a minute or two later; progress is under the Actions tab, where the workflow can also be re-run by hand. No build output is committed and there is no `gh-pages` branch.
 
-```bash
-npm run build
-```
-
-Commit the updated `docs/` together with the source change and push. GitHub publishes within about a minute. Rebuild before every commit that should go live, otherwise the site lags the source.
-
-Custom domain **joowdx.qzz.io** is declared in [`public/CNAME`](public/CNAME), which Vite copies into `docs/` on every build. DNS for the domain is a `CNAME` record pointing at `joowdx.github.io`; change the domain by editing `public/CNAME` (DNS first, then build and push). `public/.nojekyll` makes Pages serve the folder as-is instead of running it through Jekyll.
+The custom domain **joowdx.qzz.io** is a Pages setting (Settings → Pages → Custom domain), not a file in the repo: Actions deployments ignore `CNAME` files. DNS points the domain at GitHub Pages (a `CNAME` record to `joowdx.github.io`, or GitHub's A/AAAA records).

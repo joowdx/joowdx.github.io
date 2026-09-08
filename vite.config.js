@@ -6,7 +6,7 @@ export default defineConfig({
   publicDir: path.resolve(import.meta.dirname, './public'),
   build: {
     target: 'es2020', // older Safari/iOS still get the site
-    outDir: path.resolve(import.meta.dirname, './docs'),
+    outDir: path.resolve(import.meta.dirname, './dist'),
     emptyOutDir: true,
     rollupOptions: {
       output: {
