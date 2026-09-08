@@ -17,15 +17,27 @@
     <meta property="og:url" content="https://joowdx.dev" />
     <meta property="og:type" content="website" />
     <link rel="icon" href="/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=DM+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <script type="module" crossorigin src="/assets/index-CT5fuAlP.js"></script>
+    <meta name="color-scheme" content="dark" />
+    <!-- paint the midnight ground before any stylesheet arrives, so there is no white flash -->
+    <style>
+      html {
+        background: #07070d;
+        color-scheme: dark;
+      }
+    </style>
+    <!-- self-hosted fonts (OFL, see public/fonts), preloaded so text is set in Urbanist from the first paint -->
+    <link rel="preload" href="/fonts/urbanist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/dm-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <noscript>
+      <style>
+        .hero-copy > * {
+          opacity: 1;
+        }
+      </style>
+    </noscript>
+    <script type="module" crossorigin src="/assets/index-Bv-h0zkG.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/three-CzDGEQ8r.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-DwQco1pl.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-C9NGDf1D.css">
   </head>
   <body>
     <div class="stars" id="stars" aria-hidden="true"></div>
