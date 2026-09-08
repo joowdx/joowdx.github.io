@@ -6,22 +6,22 @@ Source for [joowdx.dev](https://joowdx.dev), a personal portfolio site. The publ
 
 - [Vite](https://vitejs.dev/) with plain ES modules and CSS, no UI framework
 - [Three.js](https://threejs.org/) for the hero: a calico cat looping ollies down a city street at midnight
-- Google Fonts: Urbanist (display and body) and DM Mono (labels)
+- Urbanist (display and body) and DM Mono (labels), self-hosted from `public/fonts/` under the OFL and preloaded to avoid a flash of fallback text
 
 ## Project structure
 
-| Path                                     | Role                                                                                                   |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [`src/index.html`](src/index.html)       | Page shell and static copy (nav, hero, about, footer)                                                  |
-| [`src/styles.css`](src/styles.css)       | Design tokens and all styles                                                                           |
-| [`src/main.js`](src/main.js)             | Entry: renders the data-driven sections, wires page behaviour, starts the scene                        |
-| [`src/data/`](src/data/)                 | Content: `experience.js`, `projects.js`, `capabilities.js`, `site.js`                                  |
-| [`src/sections/`](src/sections/)         | Renderers for the data-driven sections (capabilities, experience, projects)                            |
-| [`src/ui/`](src/ui/)                     | Page behaviour: nav, menu, stars, scroll reveals, card tilt, local time, live-status probes             |
-| [`src/scene/`](src/scene/)               | The Three.js hero: `index.js` (loop, camera, lights), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `materials.js` |
-| [`src/assets/`](src/assets/)             | Images imported by the data modules and the HTML                                                       |
-| [`public/`](public/)                     | Static files copied as-is: `favicon.ico`, `CNAME`                                                      |
-| [`prototype/`](prototype/)               | The standalone single-file prototype the site was ported from (safe to delete)                         |
+| Path                               | Role                                                                                                                 |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [`src/index.html`](src/index.html) | Page shell and static copy (nav, hero, about, footer)                                                                |
+| [`src/styles.css`](src/styles.css) | Design tokens and all styles                                                                                         |
+| [`src/main.js`](src/main.js)       | Entry: renders the data-driven sections, wires page behaviour, starts the scene                                      |
+| [`src/data/`](src/data/)           | Content: `experience.js`, `projects.js`, `capabilities.js`, `site.js`                                                |
+| [`src/sections/`](src/sections/)   | Renderers for the data-driven sections (capabilities, experience, projects)                                          |
+| [`src/ui/`](src/ui/)               | Page behaviour: nav, menu, stars, scroll reveals, card tilt, local time, live-status probes                          |
+| [`src/scene/`](src/scene/)         | The Three.js hero: `index.js` (loop, camera, lights), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `materials.js` |
+| [`src/assets/`](src/assets/)       | Images imported by the data modules and the HTML                                                                     |
+| [`public/`](public/)               | Static files copied as-is: `favicon.ico`, `CNAME`, `fonts/`                                                          |
+| [`prototype/`](prototype/)         | The standalone single-file prototype the site was ported from (safe to delete)                                       |
 
 ## Editing content
 

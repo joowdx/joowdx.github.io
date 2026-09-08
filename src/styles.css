@@ -1,3 +1,26 @@
+/* fonts: self-hosted latin subsets from public/fonts (OFL). Urbanist is one variable file covering 100-900. */
+@font-face {
+  font-family: 'Urbanist';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/urbanist-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/dm-mono-400-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/dm-mono-500-latin.woff2') format('woff2');
+}
+
 /* ───────────────────────── tokens: midnight ───────────────────────── */
 :root {
   --ink: #07070d; /* page: black with a hint of blue */
@@ -340,8 +363,12 @@ footer {
   opacity: clamp(0, calc(1 - var(--sy) / 460), 1);
 }
 .hero-copy > * {
+  opacity: 0; /* held until the fonts are usable; ui/fonts.js adds .fonts-ready to <html> */
+}
+.fonts-ready .hero-copy > * {
+  opacity: 1;
   animation: fadeUp 1s var(--ease) both;
-  animation-delay: calc(var(--i) * 100ms + 0.55s);
+  animation-delay: calc(var(--i) * 100ms + 0.35s);
 }
 @keyframes fadeUp {
   from {
@@ -1122,6 +1149,11 @@ footer {
   .hero-copy {
     transform: none;
     opacity: 1;
+  }
+  .hero-copy > *,
+  .fonts-ready .hero-copy > * {
+    opacity: 1;
+    animation: none;
   }
   .card:hover .shot {
     transition-duration: 0.6s;

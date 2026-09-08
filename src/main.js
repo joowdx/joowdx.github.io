@@ -2,9 +2,12 @@ import { startScene } from './scene/index.js';
 import { renderCapabilities } from './sections/capabilities.js';
 import { renderExperience } from './sections/experience.js';
 import { renderProjects } from './sections/projects.js';
-import './styles.css';
+import { gateOnFonts } from './ui/fonts.js';
 import { initPage } from './ui/page.js';
 import { watchStatuses } from './ui/status.js';
+
+// styles.css is linked from index.html so it arrives with the document, not after this module runs
+gateOnFonts();
 
 // content lists come from src/data; render them before the reveal observer looks for .reveal nodes
 renderCapabilities(document.getElementById('cap-grid'));
