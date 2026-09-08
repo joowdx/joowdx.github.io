@@ -30,6 +30,7 @@ export function startScene({ hero, canvas, hint }) {
     // no WebGL (old browser, privacy extension, GPU acceleration off): keep the hero, drop the cat, say why
     console.warn('[hero] 3D scene disabled: no WebGL context.', err);
     hero.classList.add('no-3d');
+    if (hint) hint.textContent = 'the cat needs WebGL · this browser is blocking it';
     canvas.remove();
     return;
   }
