@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import { BOX, COLORS, CONE, CYL, mk, put, SPH } from './materials.js';
+import { BOX, canvasTex, COLORS, CONE, CYL, mk, put, SPH } from './materials.js';
+import { buildPalm } from './palm.js';
+import { batchStatic, createProps } from './props.js';
+import { createStorefronts } from './storefronts.js';
 
 /**
  * The street (in `stage`, which is rotated a little toward the camera) and the skyline (in `far`,
@@ -9,9 +12,51 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
   const belts = [];
   const blinkers = [];
   const belt = (obj, speed, loop) => belts.push({ obj, speed, loop });
+  const props = createProps(M);
+  const storefronts = createStorefronts({ M, props });
+  const reflectionGeo = new THREE.PlaneGeometry(1, 1);
+  const reflect = (parent, color, x, z, width, length, opacity = 0.4) => {
+    const m = new THREE.Mesh(
+      reflectionGeo,
+      new THREE.MeshBasicMaterial({
+        map: tex.reflection,
+        color,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, 0.018, z);
+    m.scale.set(width, length, 1);
+    parent.add(m);
+    return m;
+  };
 
   // ── the street ──
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), M.asphalt);
+  const paving = canvasTex(128, 128, (g, w, h) => {
+    g.fillStyle = '#a7afb0';
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#737e81';
+    g.lineWidth = 2;
+    g.strokeRect(1, 1, w - 2, h - 2);
+    g.beginPath();
+    g.moveTo(0, h / 2);
+    g.lineTo(w, h / 2);
+    g.stroke();
+    g.beginPath();
+    g.moveTo(w / 2, 0);
+    g.lineTo(w / 2, h / 2);
+    g.stroke();
+  });
+  paving.wrapS = paving.wrapT = THREE.RepeatWrapping;
+  paving.repeat.set(200, 2.35);
+  M.curb.map = paving;
+  M.asphalt.map = tex.asphalt;
+  M.asphalt.bumpMap = tex.asphalt;
+  M.asphalt.bumpScale = 0.025;
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   stage.add(ground);
@@ -30,27 +75,47 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     stage.add(g);
     belt(g, 1, 70);
   }
-  belt(put(CYL(0.42, 0.42, 0.014, 20), M.manhole, stage, { p: [-8, 0.009, 0.85], shadow: false }), 1, 50);
+  {
+    const cover = new THREE.Group();
+    put(CYL(0.4, 0.4, 0.012, 32), M.manhole, cover, { p: [0, 0.008, 0], shadow: false });
+    for (const radius of [0.3, 0.405]) {
+      put(new THREE.TorusGeometry(radius, 0.009, 4, 32), M.metal, cover, { p: [0, 0.017, 0], r: [-Math.PI / 2, 0, 0], shadow: false });
+    }
+    for (let z = -0.24; z <= 0.24; z += 0.08) {
+      put(BOX(0.49, 0.006, 0.012), M.pole, cover, { p: [0, 0.018, z], shadow: false });
+    }
+    batchStatic(cover);
+    cover.position.set(-8, 0, 0.85);
+    stage.add(cover);
+    belt(cover, 1, 50);
+  }
+  // Curb joints and drain grates pass at street speed.
+  const curbDetails = new THREE.Group();
+  for (let i = 0; i < 32; i++) {
+    put(BOX(0.02, 0.12, 0.06), M.pole, curbDetails, { p: [-22 + i * 1.375, 0.075, -2.595], shadow: false });
+  }
+  for (const x of [-12, 10]) {
+    put(BOX(0.64, 0.009, 0.28), M.manhole, curbDetails, { p: [x, 0.012, -2.39], shadow: false });
+    for (let i = 0; i < 8; i++) put(BOX(0.025, 0.012, 0.25), M.metal, curbDetails, { p: [x - 0.27 + i * 0.077, 0.017, -2.39], shadow: false });
+  }
+  batchStatic(curbDetails);
+  const curbBelt = new THREE.Group();
+  for (const x of [-44, 0, 44]) {
+    const strip = curbDetails.clone();
+    strip.position.x = x;
+    curbBelt.add(strip);
+  }
+  stage.add(curbBelt);
+  belt(curbBelt, 1, 44);
 
-  // storefronts: a continuous ring of lit shops behind the promenade
+  // An alternating row of small businesses, with four distinct facade designs.
   const SHOP_LOOP = 44;
   for (let sx = -SHOP_LOOP / 2, k = 0; sx < SHOP_LOOP / 2 - 0.01; k++) {
-    let w = 2.4 + rnd() * 1.8;
-    if (sx + w > SHOP_LOOP / 2 - 1.4) w = SHOP_LOOP / 2 - sx; // last one fills the ring exactly
-    const h = 1.3 + rnd() * 0.4,
-      d = 2,
-      ni = k % 4;
-    const g = new THREE.Group();
-    put(BOX(w, h, d), mk(C.shop, { rough: 1 }), g, { p: [0, h / 2, 0], shadow: false });
-    put(BOX(w + 0.06, 0.07, d + 0.06), M.trim, g, { p: [0, h + 0.03, 0], shadow: false }); // parapet
-    for (const px of [-w * 0.3, -w * 0.02]) put(BOX(w * 0.24, 0.5, 0.04), M.shopLight, g, { p: [px, 0.52, d / 2 + 0.02], shadow: false }); // two lit panes
-    put(BOX(0.4, 0.9, 0.04), M.dark, g, { p: [w * 0.34, 0.45, d / 2 + 0.02], shadow: false }); // door
-    if (k % 3 !== 2) put(BOX(w * 0.46, 0.1, 0.05), M.neon[ni], g, { p: [-w * 0.12, h - 0.2, d / 2 + 0.03], shadow: false }); // sign
-    if (rnd() < 0.6) {
-      // awning with a lit edge
-      put(BOX(w * 0.72, 0.04, 0.5), M.trim, g, { p: [-w * 0.12, 0.95, d / 2 + 0.24], r: [0.26, 0, 0], shadow: false });
-      put(BOX(w * 0.72, 0.02, 0.03), M.neon[(ni + 2) % 4], g, { p: [-w * 0.12, 0.885, d / 2 + 0.47], shadow: false });
-    }
+    let w = 2.8 + rnd() * 1.4;
+    if (sx + w > SHOP_LOOP / 2 - 1.6) w = SHOP_LOOP / 2 - sx;
+    const h = 2.05 + (k % 3) * 0.12;
+    const g = storefronts.build(w, h, k);
+    reflect(g, C.neon[k % 4], -w * 0.1, 6.8, w * 1.2, 8, 0.14);
     g.position.set(sx + w / 2, 0, -7.6);
     stage.add(g);
     belt(g, 1, SHOP_LOOP);
@@ -58,7 +123,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
   }
 
   // streetlights, each with a light pool on the road
-  const poolGeo = new THREE.CircleGeometry(2.1, 24);
+  const poolGeo = new THREE.PlaneGeometry(5, 6);
   const streetlight = () => {
     const g = new THREE.Group();
     put(CYL(0.04, 0.06, 2.8, 8), M.pole, g, { p: [0, 1.4, 0], shadow: false });
@@ -69,22 +134,37 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
       new THREE.SpriteMaterial({
         map: tex.glowTex,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.55,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         fog: false,
       }),
     );
     glow.position.set(0, 2.6, 0.82);
-    glow.scale.setScalar(1.9);
+    glow.scale.setScalar(1.2);
     g.add(glow);
     const pool = new THREE.Mesh(
       poolGeo,
       new THREE.MeshBasicMaterial({ map: tex.glowTex, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }),
     );
     pool.rotation.x = -Math.PI / 2;
-    pool.position.set(0, 0.014, 1.5);
+    pool.position.set(0, -0.14, 1.5);
     g.add(pool);
+    // A soft cone gives the lamp a volume without another shadow-casting light.
+    const beam = put(
+      new THREE.ConeGeometry(1.1, 2.5, 24, 1, true),
+      new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: 'varying vec2 vUv; void main() { float a = pow(vUv.y, 3.0) * (1.0 - vUv.y) * 0.16; gl_FragColor = vec4(1.0, 0.67, 0.4, a); }',
+      }),
+      g,
+      { p: [0, 1.36, 0.82], shadow: false },
+    );
+    beam.renderOrder = 1;
     return g;
   };
   const LAMP_LOOP = 44;
@@ -95,31 +175,29 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     belt(l, 1, LAMP_LOOP);
   }
 
-  // two palms on the promenade: a Davao street, not a generic one
-  const frondGeo = new THREE.SphereGeometry(0.5, 7, 5);
-  const palm = (h) => {
-    const g = new THREE.Group(),
-      lean = 0.05 + rnd() * 0.08;
-    put(new THREE.CylinderGeometry(0.07, 0.13, h, 7), M.palm, g, { p: [0, h / 2, 0], r: [0, 0, lean], shadow: false });
-    const crown = new THREE.Group();
-    crown.position.set(-Math.sin(lean) * h, Math.cos(lean) * h, 0);
-    for (let i = 0; i < 7; i++) {
-      const f = new THREE.Mesh(frondGeo, M.palm);
-      f.scale.set(2 + rnd() * 0.5, 0.16, 0.5);
-      const a = (i / 7) * Math.PI * 2 + rnd() * 0.3;
-      f.position.set(Math.cos(a) * 0.85, 0.05, Math.sin(a) * 0.85);
-      f.rotation.set(0, -a, -0.35 - rnd() * 0.35);
-      crown.add(f);
-    }
-    g.add(crown);
-    return g;
-  };
+  // Feathered coconut palms with a gentle breeze, kept behind the skater.
+  const palms = [];
   for (let i = 0; i < 2; i++) {
-    const p = palm(3.1 + i * 0.6);
-    p.position.set(-14.5 + i * 22, 0.16, -5.6);
-    stage.add(p);
-    belt(p, 1, LAMP_LOOP);
+    const palm = buildPalm({ height: 2.85 + i * 0.3, rnd, M, C });
+    palm.group.position.set(-14.5 + i * 22, 0.16, -5.9);
+    stage.add(palm.group);
+    belt(palm.group, 1, LAMP_LOOP);
+    palms.push(palm);
   }
+
+  // A short strand of warm café lights, suspended on a sagging cable.
+  const festoon = new THREE.Group();
+  const cable = new THREE.QuadraticBezierCurve3(new THREE.Vector3(-3.2, 2.63, 0), new THREE.Vector3(0, 1.95, 0), new THREE.Vector3(3.2, 2.63, 0));
+  put(new THREE.TubeGeometry(cable, 24, 0.01, 4, false), M.pole, festoon, { shadow: false });
+  for (let i = 0; i <= 10; i++) {
+    const p = cable.getPoint(i / 10);
+    put(CYL(0.01, 0.01, 0.08, 5), M.pole, festoon, { p: [p.x, p.y - 0.04, p.z], shadow: false });
+    put(SPH(0.031, 8, 6), M.lamp, festoon, { p: [p.x, p.y - 0.095, p.z], shadow: false });
+  }
+  batchStatic(festoon);
+  festoon.position.set(-3.5, 0, -6.35);
+  stage.add(festoon);
+  belt(festoon, 1, SHOP_LOOP);
 
   // sidewalk furniture
   {
@@ -132,42 +210,30 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     belt(g, 1, 58);
   }
   {
-    const g = new THREE.Group(); // bench
-    put(BOX(1.3, 0.06, 0.42), M.trim, g, { p: [0, 0.46, 0] });
-    put(BOX(1.3, 0.36, 0.05), M.trim, g, { p: [0, 0.68, -0.2] });
-    for (const x of [-0.55, 0.55]) put(BOX(0.06, 0.46, 0.4), M.pole, g, { p: [x, 0.23, 0], shadow: false });
-    g.position.set(-6, 0.16, -3.7);
+    const g = props.bench();
+    g.position.set(-6, 0.16, -3.85);
     stage.add(g);
     belt(g, 1, 66);
   }
   {
-    const g = new THREE.Group(); // bin
-    put(CYL(0.19, 0.17, 0.55, 12), M.bin, g, { p: [0, 0.28, 0] });
-    put(CYL(0.2, 0.2, 0.04, 12), M.dark, g, { p: [0, 0.57, 0], shadow: false });
-    g.position.set(12, 0.16, -3.3);
+    const g = new THREE.Group(); // vented street bin
+    put(CYL(0.19, 0.17, 0.55, 16), M.bin, g, { p: [0, 0.28, 0], shadow: false });
+    put(CYL(0.215, 0.215, 0.055, 16), M.pole, g, { p: [0, 0.58, 0], shadow: false });
+    put(CYL(0.13, 0.13, 0.009, 16), M.dark, g, { p: [0, 0.612, 0], shadow: false });
+    for (let i = 0; i < 12; i++) {
+      const a = (i * Math.PI) / 6;
+      put(BOX(0.016, 0.4, 0.016), M.pole, g, { p: [Math.cos(a) * 0.185, 0.29, Math.sin(a) * 0.185], shadow: false });
+    }
+    batchStatic(g);
+    g.position.set(12, 0.16, -3.5);
     stage.add(g);
     belt(g, 1, 52);
   }
 
-  // parked cars along the curb
-  const wheelCarGeo = CYL(0.19, 0.19, 0.16, 14);
-  wheelCarGeo.rotateX(Math.PI / 2);
-  const car = (color, dir) => {
-    const g = new THREE.Group(),
-      body = mk(color, { rough: 0.3, metal: 0.3 });
-    put(BOX(2.6, 0.46, 1.0), body, g, { p: [0, 0.44, 0] });
-    put(BOX(1.5, 0.4, 0.92), M.glass, g, { p: [-0.12 * dir, 0.85, 0] });
-    put(BOX(1.3, 0.05, 0.88), body, g, { p: [-0.12 * dir, 1.07, 0] });
-    for (const wx of [-0.85, 0.85]) for (const wz of [-0.52, 0.52]) put(wheelCarGeo, M.dark, g, { p: [wx, 0.19, wz], shadow: false });
-    for (const wz of [-0.32, 0.32]) {
-      put(BOX(0.05, 0.1, 0.26), M.head, g, { p: [1.31 * dir, 0.5, wz], shadow: false });
-      put(BOX(0.05, 0.1, 0.26), M.tailLight, g, { p: [-1.31 * dir, 0.5, wz], shadow: false });
-    }
-    return g;
-  };
+  // Compact hatchbacks with sloped glass, shaped panels, mirrors and alloy wheels.
   for (let i = 0; i < 2; i++) {
-    const c = car(C.cars[i], i === 0 ? 1 : -1);
-    c.position.set(-16 + i * 26, 0, -2.05);
+    const c = props.car(C.cars[i], i === 0 ? 1 : -1);
+    c.position.set(-16 + i * 26, 0, -2.25);
     stage.add(c);
     belt(c, 1, 52);
   }
@@ -211,7 +277,8 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     } else if (rnd() < 0.5) {
       // rooftop billboard
       const ni = Math.floor(rnd() * 4);
-      put(BOX(w * 0.6, 0.42, 0.05), M.neon[ni], g, { p: [0, h + 0.45, 0], shadow: false });
+      put(BOX(w * 0.65 + 0.05, w * 0.2 + 0.05, 0.08), M.pole, g, { p: [0, h + 0.48, 0], shadow: false });
+      put(new THREE.PlaneGeometry(w * 0.65, w * 0.2), storefronts.signs[ni], g, { p: [0, h + 0.48, 0.045], shadow: false });
       for (const x2 of [-w * 0.22, w * 0.22]) put(BOX(0.04, 0.3, 0.04), M.pole, g, { p: [x2, h + 0.15, 0], shadow: false });
     }
     if (rnd() < 0.5) put(CYL(0.22, 0.22, 0.42, 10), M.pole, g, { p: [(rnd() - 0.5) * w * 0.5, top + 0.21, (rnd() - 0.5) * d * 0.4], shadow: false });
@@ -220,19 +287,30 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
       put(CYL(0.02, 0.02, 1.1, 5), M.pole, g, { p: [ax, top + 0.55, 0], shadow: false });
       blinkers.push({ m: put(SPH(0.05, 8, 6), M.beacon.clone(), g, { p: [ax, top + 1.1, 0], shadow: false }), phase: rnd() * 6 });
     }
+    props.roof(g, w, top, d, nb);
+    // Floor ledges and vertical facade pilasters give the midground real depth.
+    for (let y = 0.85; y < h; y += 0.85) put(BOX(w + 0.06, 0.045, 0.12), M.trim, g, { p: [0, y, d / 2 + 0.025], shadow: false });
+    for (const edge of [-1, 1]) put(BOX(0.07, h, 0.08), M.curb, g, { p: [edge * w * 0.48, h / 2, d / 2 + 0.04], shadow: false });
+    batchStatic(g);
     g.position.set(x + w / 2, 0, -11.4 - rnd() * 1.2);
     far.add(g);
     belt(g, 0.5, MID_LOOP);
     x += w + 1 + rnd() * 2.6;
   }
   const FAR_LOOP = 96;
-  for (let x = -FAR_LOOP / 2; x < FAR_LOOP / 2 - 2; ) {
+  for (let x = -FAR_LOOP / 2, i = 0; x < FAR_LOOP / 2 - 2; i++) {
     const w = 1.8 + rnd() * 3,
-      h = 3 + rnd() * 6,
+      h = 2.5 + rnd() * 4.7,
       d = 2.2;
     const g = new THREE.Group();
-    building(w, h, d, C.buildingFar, 0.75, g);
-    if (h > 7) {
+    building(w, h, d, C.buildingFar, 0.5, g);
+    if (i % 3 === 0) {
+      building(w * 0.68, 0.55, d * 0.78, C.buildingFar, 0.35, g).position.set(0, h + 0.275, 0);
+      put(BOX(w * 0.75, 0.065, d * 0.85), M.trim, g, { p: [0, h + 0.58, 0], shadow: false });
+    } else if (i % 3 === 1) {
+      for (const edge of [-1, 1]) put(BOX(0.07, h + 0.16, 0.1), M.trim, g, { p: [edge * w * 0.43, h / 2, d / 2], shadow: false });
+    }
+    if (h > 6) {
       put(CYL(0.02, 0.02, 1.4, 5), M.pole, g, { p: [0, h + 0.7, 0], shadow: false });
       blinkers.push({ m: put(SPH(0.07, 8, 6), M.beacon.clone(), g, { p: [0, h + 1.4, 0], shadow: false }), phase: rnd() * 6 });
     }
@@ -270,6 +348,9 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
 
   /** scroll the belts, blink the beacons, drift the dust */
   function update(dt, elapsed, v) {
+    for (const palm of palms) palm.update(elapsed);
+    tex.asphalt.offset.x = ((elapsed * v) / 4) % 1;
+    paving.offset.x = ((elapsed * v) / 2) % 1;
     for (const b of belts) {
       b.obj.position.x -= v * b.speed * dt;
       if (b.obj.position.x < -b.loop / 2) b.obj.position.x += b.loop;

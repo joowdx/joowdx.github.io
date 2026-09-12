@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildCity } from './city.js';
+import { buildEffects } from './effects.js';
 import { COLORS, createMaterials, createTextures } from './materials.js';
 import { createRng } from './math.js';
 import { buildSkater } from './skater.js';
@@ -7,77 +8,82 @@ import { pose, TRICK_NAMES, TRICKS } from './tricks.js';
 
 /* Tweak these first. Everything else derives from them. */
 export const TUNING = {
-  loopSeconds: 2.7, // one full ollie cycle
-  jumpHeight: 1.3, // apex height of the board (board is 2 units long)
-  popAngle: 0.62, // radians of nose-up at the pop (~35°)
-  groundSpeed: 3.4, // how fast the street scrolls under the wheels
-  autoTrickEvery: 3, // every Nth loop plays a random trick on its own
+  loopSeconds: 3.2,
+  jumpHeight: 1.18,
+  popAngle: 0.62,
+  groundSpeed: 3.6,
+  autoTrickEvery: 2,
 };
 
-/**
- * Mounts the hero scene on `canvas`, sized to `hero`. Renders only while visible and only when the
- * tab is shown; honours prefers-reduced-motion with a single still frame.
- */
-export function startScene({ hero, canvas, hint }) {
+/** Mount the scene, suspending work when hidden, paused, or outside the viewport. */
+export function startScene({ hero, canvas, hint, trickButton, pauseButton, rideStatus }) {
   if (!hero || !canvas) return;
-  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
   const coarse = matchMedia('(pointer: coarse)').matches;
+  let reduceMotion = motionQuery.matches;
+  let paused = reduceMotion;
 
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   } catch (err) {
-    // no WebGL (old browser, privacy extension, GPU acceleration off): keep the hero, drop the cat, say why
     console.warn('[hero] 3D scene disabled: no WebGL context.', err);
     hero.classList.add('no-3d');
-    if (hint) hint.textContent = 'the cat needs WebGL · this browser is blocking it';
+    if (hint) hint.textContent = 'Taking a breather. Explore the work below.';
+    if (rideStatus) rideStatus.textContent = 'Back on the board soon';
+    if (trickButton) trickButton.hidden = true;
+    if (pauseButton) pauseButton.hidden = true;
     canvas.remove();
     return;
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 2 : 1.75));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 1.75));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.NoToneMapping; // keeps the fog colour identical to the CSS horizon
+  renderer.toneMapping = THREE.NoToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(COLORS.fog, 10, 62);
+  scene.fog = new THREE.Fog(COLORS.fog, 8, 43);
+  const CAM_DIST = 7.4;
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 160);
+  const target = new THREE.Vector3();
+  const cameraBase = new THREE.Vector3();
+  const pointer = new THREE.Vector2();
+  const drift = new THREE.Vector2();
+  let mobile = false;
 
-  // camera is fixed: no follow, no bob, no parallax (the jump reads against a still city)
-  const CAM_DIST = 6.3;
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 200);
-  const target = new THREE.Vector3(0, 1.15, 0);
-
-  // lights: warm streetlight key from upper left, cool moonlight from behind and the right
-  scene.add(new THREE.HemisphereLight(0x1c1c3c, 0x08080f, 0.9));
-  const key = new THREE.DirectionalLight(0xffc9a0, 2.4);
-  key.position.set(-6, 6, 4);
+  scene.add(new THREE.HemisphereLight(0x9cbbda, 0x1f162b, 1.25));
+  const key = new THREE.DirectionalLight(0xffc2a1, 2.6);
+  key.position.set(-3, 6, 5);
   key.castShadow = true;
   key.shadow.mapSize.set(coarse ? 1024 : 2048, coarse ? 1024 : 2048);
-  Object.assign(key.shadow.camera, { near: 1, far: 30, left: -4.5, right: 5.5, top: 5.5, bottom: -3 });
+  Object.assign(key.shadow.camera, { near: 1, far: 24, left: -4.5, right: 5.5, top: 5.5, bottom: -3 });
   key.shadow.bias = -0.0004;
-  key.shadow.normalBias = 0.02;
+  key.shadow.normalBias = 0.025;
+  key.shadow.radius = 3;
   scene.add(key, key.target);
-  const rim = new THREE.DirectionalLight(0x6f7cff, 1.2);
-  rim.position.set(2, 2.5, -8);
+  const rim = new THREE.DirectionalLight(0x6edbdf, 2.7);
+  rim.position.set(3, 3, -5);
   scene.add(rim);
-  const fill = new THREE.DirectionalLight(0x4050a0, 0.5);
-  fill.position.set(6, 3, 2);
+  const fill = new THREE.DirectionalLight(0xa69df5, 0.75);
+  fill.position.set(5, 2, 3);
   scene.add(fill);
+  const streetBounce = new THREE.PointLight(0xff735a, 4, 7, 2);
+  streetBounce.position.set(-1, 0.6, 1.5);
+  scene.add(streetBounce);
 
-  // world
   const rnd = createRng(7);
   const tex = createTextures(rnd);
   const M = createMaterials();
-  const stage = new THREE.Group(); // the street, turned a little toward the camera
-  stage.rotation.y = -0.3;
+  const stage = new THREE.Group();
+  stage.rotation.y = -0.43;
   scene.add(stage);
-  const far = new THREE.Group(); // frontal skyline
+  const far = new THREE.Group();
   scene.add(far);
   const city = buildCity({ stage, far, M, C: COLORS, tex, rnd });
   const skater = buildSkater({ stage, M, C: COLORS, tex, rnd });
+  const effects = buildEffects({ stage, tex, rnd });
 
-  // state
   const clock = new THREE.Clock();
   let elapsed = 0,
     prevT = 0,
@@ -85,44 +91,73 @@ export function startScene({ hero, canvas, hint }) {
   let trick = null,
     queued = null,
     nextTrick = 'kickflip';
+  let lastStatus = '';
   const setHint = () => {
-    if (hint) hint.textContent = `tap the cat · next: ${nextTrick}`;
+    if (hint) hint.textContent = paused ? 'A little pause between sessions.' : 'Good things happen after hours.';
+    if (trickButton) {
+      trickButton.querySelector('span').textContent = `Try a ${nextTrick}`;
+      trickButton.setAttribute('aria-label', `${paused ? 'Preview' : 'Queue'} a ${nextTrick}`);
+    }
+    canvas.setAttribute('aria-label', `A calico cat skating through a neon-lit street. ${paused ? 'Preview' : 'Queue'} a ${nextTrick}.`);
+    if (pauseButton) {
+      pauseButton.setAttribute('aria-label', paused ? 'Play animation' : 'Pause animation');
+      pauseButton.setAttribute('aria-pressed', String(paused));
+      pauseButton.dataset.paused = String(paused);
+    }
+    hero.classList.toggle('scene-paused', paused);
   };
+  function status(text) {
+    if (lastStatus === text) return;
+    lastStatus = text;
+    if (rideStatus) rideStatus.textContent = text;
+  }
 
   function update(dt) {
     elapsed += dt;
     const t = (elapsed / TUNING.loopSeconds) % 1;
     if (t < prevT) {
-      // a new loop begins
       loops++;
       trick = queued ?? (loops % TUNING.autoTrickEvery === 0 ? rnd.pick(TRICK_NAMES) : null);
       queued = null;
     }
     const def = trick ? TRICKS[trick] : null;
-    if (!def?.manual) {
-      if (prevT < 0.47 && t >= 0.47) skater.puff(-0.9, 0, 3); // pop
-      if (prevT < 0.855 && t >= 0.855) skater.puff(0, 0, 7); // landing
+    if (!def?.manual && dt > 0) {
+      if (prevT < 0.47 && t >= 0.47) skater.puff(-0.9, 0, 3);
+      if (prevT < 0.855 && t >= 0.855) {
+        skater.puff(0, 0, 5);
+        effects.land();
+      }
     }
     prevT = t;
     const P = pose(t, def, TUNING);
     skater.update(dt, elapsed, t, P, def, TUNING.groundSpeed);
     city.update(dt, elapsed, TUNING.groundSpeed);
+    effects.update(dt, P, TUNING.groundSpeed);
+    drift.lerp(pointer, 1 - Math.exp(-dt * 3));
+    camera.position.copy(cameraBase);
+    if (!reduceMotion && !mobile) {
+      camera.position.x += drift.x * 0.2 + Math.sin(elapsed * 0.23) * 0.055;
+      camera.position.y += drift.y * 0.09;
+    }
+    camera.lookAt(target);
+    status(queued ? `${queued} up next` : paused ? 'Taking it all in' : t > 0.46 && t < 0.9 ? trick || 'Ollie' : 'Just cruising');
+    hero.classList.toggle('in-air', P.inAir > 0.5);
   }
 
-  // sizing: keep the board a constant on-screen width; report the horizon to CSS
   const farPoint = new THREE.Vector3();
   function resize() {
     const w = hero.clientWidth,
       h = hero.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
-    const aspect = w / h,
-      mobile = aspect < 0.85;
+    const aspect = w / h;
+    mobile = w <= 820;
     camera.aspect = aspect;
-    camera.fov = Math.max(36, (2 * Math.atan(2.45 / (CAM_DIST * aspect)) * 180) / Math.PI);
-    camera.position.set(0, mobile ? 1.95 : 1.7, CAM_DIST);
-    target.set(0, mobile ? 0.35 : 1.15, 0);
-    stage.position.x = mobile ? 0 : 1.15; // leave the left third to the copy on wide screens
+    camera.fov = Math.max(mobile ? 52 : 35, (2 * Math.atan(2.2 / (CAM_DIST * aspect)) * 180) / Math.PI);
+    cameraBase.set(0, mobile ? 2.4 : 2.1, CAM_DIST);
+    target.set(0, mobile ? 0.1 : 1.2, 0);
+    stage.position.x = mobile ? 0.12 : Math.min(1.8, aspect * 1.02);
+    camera.position.copy(cameraBase);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
@@ -130,39 +165,32 @@ export function startScene({ hero, canvas, hint }) {
     hero.style.setProperty('--horizon', (((1 - farPoint.y) / 2) * h).toFixed(1) + 'px');
   }
 
-  // run loop (only while visible)
   let running = false,
     onScreen = true,
-    ready = false;
-  const frame = () => {
+    frameId = 0;
+  function render() {
+    renderer.render(scene, camera);
+    canvas.classList.add('ready');
+  }
+  function frame() {
     if (!running) return;
     update(Math.min(clock.getDelta(), 0.05));
-    renderer.render(scene, camera);
-    if (!ready) {
-      ready = true;
-      canvas.classList.add('ready');
-    }
-    requestAnimationFrame(frame);
-  };
-  const sync = () => {
-    const should = onScreen && !document.hidden && !reduceMotion;
-    if (should && !running) {
-      running = true;
+    render();
+    frameId = requestAnimationFrame(frame);
+  }
+  function sync() {
+    const should = onScreen && !document.hidden && !paused;
+    if (should === running) return;
+    running = should;
+    if (running) {
       clock.getDelta();
-      requestAnimationFrame(frame);
-    }
-    if (!should) running = false;
-  };
-  const still = () => {
-    // one good frame near the apex, no loop
-    const keep = elapsed;
-    elapsed = TUNING.loopSeconds * 0.655;
-    prevT = 0.6;
-    for (let i = 0; i < 6; i++) update(1 / 60); // let the tail settle
-    renderer.render(scene, camera);
-    elapsed = reduceMotion ? elapsed : keep;
-    canvas.classList.add('ready');
-  };
+      frameId = requestAnimationFrame(frame);
+    } else cancelAnimationFrame(frameId);
+  }
+  function still() {
+    update(0);
+    render();
+  }
   new IntersectionObserver(
     ([e]) => {
       onScreen = e.isIntersecting;
@@ -175,21 +203,35 @@ export function startScene({ hero, canvas, hint }) {
     resize();
     if (!running) still();
   }).observe(hero);
+  motionQuery.addEventListener('change', (event) => {
+    reduceMotion = event.matches;
+    paused = reduceMotion;
+    pointer.set(0, 0);
+    drift.set(0, 0);
+    setHint();
+    sync();
+    if (paused) still();
+  });
 
-  resize();
-  if (reduceMotion) still();
-  else sync();
-  setHint();
-
-  // interaction: tap (or Enter/Space) queues the next trick
   const doTrick = () => {
-    queued = nextTrick;
-    const t = (elapsed / TUNING.loopSeconds) % 1;
-    if (t < 0.26) {
-      trick = queued;
+    const selected = nextTrick;
+    if (paused) {
+      trick = selected;
       queued = null;
+      elapsed = TUNING.loopSeconds * (TRICKS[selected].manual ? 0.6 : 0.66);
+      prevT = 0.66;
+      effects.reset();
+      skater.resetMotion();
+      still();
+      status(`${selected} · still frame`);
+    } else {
+      queued = selected;
+      if ((elapsed / TUNING.loopSeconds) % 1 < 0.26) {
+        trick = queued;
+        queued = null;
+      }
     }
-    nextTrick = TRICK_NAMES[(TRICK_NAMES.indexOf(nextTrick) + 1) % TRICK_NAMES.length];
+    nextTrick = TRICK_NAMES[(TRICK_NAMES.indexOf(selected) + 1) % TRICK_NAMES.length];
     setHint();
   };
   canvas.addEventListener('click', doTrick);
@@ -199,6 +241,29 @@ export function startScene({ hero, canvas, hint }) {
       doTrick();
     }
   });
+  trickButton?.addEventListener('click', doTrick);
+  pauseButton?.addEventListener('click', () => {
+    paused = !paused;
+    setHint();
+    sync();
+    if (paused) still();
+  });
+  if (!coarse) {
+    hero.addEventListener(
+      'pointermove',
+      (e) => {
+        if (reduceMotion || paused) return;
+        const rect = hero.getBoundingClientRect();
+        pointer.set((e.clientX - rect.left) / rect.width - 0.5, 0.5 - (e.clientY - rect.top) / rect.height);
+      },
+      { passive: true },
+    );
+    hero.addEventListener('pointerleave', () => pointer.set(0, 0));
+  }
 
+  resize();
+  setHint();
+  still();
+  sync();
   if (import.meta.env.DEV) window.__scene = { renderer, scene, camera, still, TUNING };
 }

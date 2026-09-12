@@ -21,4 +21,7 @@ startScene({
   hero: document.getElementById('hero'),
   canvas: document.getElementById('stage'),
   hint: document.querySelector('#hint span'),
+  trickButton: document.getElementById('trick-button'),
+  pauseButton: document.getElementById('pause-scene'),
+  rideStatus: document.getElementById('ride-status'),
 });

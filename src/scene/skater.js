@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BOX, CAP, COLORS, CONE, CYL, paint, put, SPH } from './materials.js';
+import { BOX, canvasTex, CAP, COLORS, CONE, CYL, paint, put, SPH } from './materials.js';
 import { smooth } from './math.js';
 import { createTail } from './tail.js';
 
@@ -34,7 +34,26 @@ export function buildSkater({ stage, M, C = COLORS, tex, rnd }) {
     return g;
   };
   put(deckGeo(2, DECK_T, 0.6), M.deck, flipG, { p: [0, DECK_Y, 0] });
+  put(deckGeo(1.99, 0.012, 0.595), M.cream, flipG, { p: [0, DECK_Y + 0.015, 0] });
   put(deckGeo(1.94, 0.012, 0.55), M.grip, flipG, { p: [0, DECK_Y + DECK_T / 2 + 0.006, 0] });
+  const graphic = canvasTex(512, 128, (g, w, h) => {
+    g.fillStyle = '#ff6b57';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#fff3e4';
+    g.font = '900 90px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('AFTER HOURS', w / 2, h / 2 + 5, w - 28);
+  });
+  put(new THREE.PlaneGeometry(1.3, 0.42), new THREE.MeshBasicMaterial({ map: graphic }), flipG, {
+    p: [0, DECK_Y - DECK_T / 2 - 0.001, 0],
+    r: [Math.PI / 2, 0, 0],
+    shadow: false,
+  });
+  for (const tx of [-0.62, 0.62])
+    for (const tz of [-0.13, 0.13]) {
+      put(CYL(0.018, 0.018, 0.012, 8), M.metal, flipG, { p: [tx, DECK_Y + 0.045, tz], shadow: false });
+    }
   const wheels = [];
   const wheelGeo = CYL(R, R, 0.08, 22);
   wheelGeo.rotateX(Math.PI / 2);
@@ -110,6 +129,7 @@ export function buildSkater({ stage, M, C = COLORS, tex, rnd }) {
   head.add(shades);
   for (const side of [-1, 1]) {
     put(BOX(0.05, 0.1, 0.14), M.shade, shades, { p: [0.25, 0.04, side * 0.11], r: [0, -side * 0.42, 0] });
+    put(BOX(0.006, 0.018, 0.11), M.lens, shades, { p: [0.279, 0.061, side * 0.11], r: [0, -side * 0.42, 0], shadow: false });
     put(BOX(0.02, 0.02, 0.3), M.shade, shades, { p: [0.05, 0.06, side * 0.27], r: [0, side * 0.06, 0], shadow: false });
   }
   put(BOX(0.02, 0.02, 0.07), M.shade, shades, { p: [0.28, 0.06, 0], shadow: false });
@@ -120,6 +140,14 @@ export function buildSkater({ stage, M, C = COLORS, tex, rnd }) {
   put(new THREE.SphereGeometry(0.285, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.46), M.dark, cap);
   put(BOX(0.28, 0.025, 0.32), M.dark, cap, { p: [0.25, 0.05, 0] });
   put(SPH(0.032, 8, 6), M.hub, cap, { p: [0, 0.28, 0] });
+  put(BOX(0.026, 0.09, 0.025), M.cream, cap, { p: [0.258, 0.15, 0.06], r: [0, 0, -0.3], shadow: false });
+  put(BOX(0.026, 0.025, 0.08), M.cream, cap, { p: [0.258, 0.15, 0.06], r: [0, 0, -0.3], shadow: false });
+
+  // A mint bandana and a loose end that catches the slipstream.
+  put(CYL(0.2, 0.22, 0.12, 20), M.scarf, torso, { p: [0.4, 0.07, 0], r: [0, 0, Math.PI / 2] });
+  const scarfGeo = new THREE.PlaneGeometry(0.66, 0.19, 12, 1);
+  put(scarfGeo, M.scarf, torso, { p: [0.1, 0.08, 0.24], shadow: false });
+  const scarfBase = Float32Array.from(scarfGeo.attributes.position.array);
 
   // legs: limb scales from the paw upward; paws stay glued to the deck (tiny IK in update)
   const legs = [];
@@ -169,6 +197,7 @@ export function buildSkater({ stage, M, C = COLORS, tex, rnd }) {
   /** pose board and cat for this frame. t = loop phase, P = pose(), def = active trick, v = ground speed */
   function update(dt, elapsed, t, P, def, v) {
     rig.position.y = P.height;
+    cat.position.y = def?.flipX || def?.spinY ? P.tuck * 0.18 : 0;
     pitchG.rotation.z = P.pitch;
     const fe = smooth((t - 0.5) / 0.34);
     flipG.rotation.x = def?.flipX ? def.flipX * Math.PI * 2 * fe : 0;
@@ -199,7 +228,18 @@ export function buildSkater({ stage, M, C = COLORS, tex, rnd }) {
       limb.scale.y = len / LEG_LEN;
     }
     for (const e of ears) e.rotation.z = -0.12 - P.inAir * 0.3;
-    torsoPos.set(torso.position.x, torso.position.y + P.height, 0); // rig space includes the jump
+    head.rotation.y = -0.12 + Math.sin(elapsed * 0.65) * 0.1;
+    head.rotation.z = -P.crouch * 0.1 + P.tuck * 0.12;
+    const cloth = scarfGeo.attributes.position;
+    for (let i = 0; i < cloth.count; i++) {
+      const x = scarfBase[i * 3];
+      const loose = (0.33 - x) / 0.66;
+      cloth.setY(i, scarfBase[i * 3 + 1] * (1 - loose * 0.75) + Math.sin(elapsed * 12 + loose * 6) * loose * 0.055 + P.inAir * loose * 0.11);
+      cloth.setZ(i, Math.sin(elapsed * 9 + loose * 5) * loose * 0.045);
+    }
+    cloth.needsUpdate = true;
+    scarfGeo.computeVertexNormals();
+    torsoPos.set(torso.position.x, torso.position.y + P.height + cat.position.y, 0); // rig space includes the jump
     tail.update(dt, elapsed, torsoPos, lean, squat, P.inAir, P.manual);
 
     for (const s of puffs) {
@@ -214,5 +254,5 @@ export function buildSkater({ stage, M, C = COLORS, tex, rnd }) {
     }
   }
 
-  return { update, puff };
+  return { update, puff, resetMotion: tail.reset };
 }

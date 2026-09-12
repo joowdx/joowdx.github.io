@@ -87,9 +87,14 @@
           aria-label="A calico cat on a skateboard, doing an ollie on loop down a city street at night. Press to queue a trick."
         ></canvas>
 
+        <div class="scene-caption" aria-hidden="true">
+          <span class="scene-label"><i></i> After hours</span>
+          <span>Davao, PH <b>/</b> <span id="ride-status">Just cruising</span></span>
+        </div>
+
         <div class="hero-copy">
           <p class="eyebrow" style="--i: 0">Joowd · Full-stack developer</p>
-          <h1 style="--i: 1">Builds that stick the&nbsp;landing.</h1>
+          <h1 style="--i: 1">Builds that<br />stick the <em>landing.</em></h1>
           <p style="--i: 2">
             Five-plus years shipping scalable web apps: intuitive frontends, robust backends, clean architecture. Currently engineering LLM-assisted
             underwriting services at Simple&nbsp;Code&nbsp;AI.
@@ -103,7 +108,18 @@
             ></a>
           </div>
         </div>
-        <p class="hint" id="hint" aria-hidden="true"><i></i><span>tap the cat · next: kickflip</span></p>
+        <p class="hint" id="hint" aria-hidden="true"><span>Good things happen after hours.</span></p>
+        <div class="scene-controls" aria-label="Skate scene controls">
+          <button class="trick-button" id="trick-button" type="button" aria-controls="stage">
+            <span>Try a kickflip</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17 19 7M8 6h12v12" /></svg>
+          </button>
+          <button class="pause-scene" id="pause-scene" type="button" aria-label="Pause animation" aria-pressed="false" aria-controls="stage">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="pause-icon" d="M9 6v12M15 6v12" />
+              <path class="play-icon" d="m9 6 9 6-9 6Z" />
+            </svg>
+          </button>
+        </div>
       </section>
 
       <!-- about -->

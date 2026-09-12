@@ -10,23 +10,23 @@ export const COLORS = {
   grip: 0x1b1930,
   hub: 0xff6b57,
   metal: 0x8f8aa8,
-  asphalt: 0x14131f,
-  paint: 0x8a8578,
-  curb: 0x1a1828,
+  asphalt: 0x0c1420,
+  paint: 0x797c82,
+  curb: 0x172330,
   pole: 0x15142a,
   trim: 0x1f1d36,
-  building: 0x101020,
-  buildingFar: 0x13122a,
-  shop: 0x141326,
+  building: 0x122332,
+  buildingFar: 0x1a2639,
+  shop: 0x17242d,
   glass: 0x16233a,
   lamp: 0xffe2bd,
   shopLight: 0xffdcb0,
   beacon: 0xff5a4a,
   cone: 0xff6b57,
-  palm: 0x1c1a33,
+  palm: 0x2c5648,
   cars: [0x1f4a5a, 0x5a1f2a, 0x2a2a3a],
   neon: [0xff6b57, 0x7ee8c7, 0xffc857, 0x6f9bff],
-  fog: 0x221a2c, // must equal --plum in styles.css so the horizon has no seam
+  fog: 0x192536, // must equal --plum in styles.css so the horizon has no seam
 };
 
 /** MeshStandardMaterial with the handful of options this scene uses */
@@ -96,6 +96,28 @@ export const radial = (size, stops) =>
 
 /** procedural textures: puffs, dust, lamp glow, and lit-window sheets for the buildings */
 export function createTextures(rnd) {
+  const asphalt = canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#9198a0';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 14000; i++) {
+      g.fillStyle = rnd() > 0.5 ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.18)';
+      g.fillRect(rnd() * w, rnd() * h, 1, 1);
+    }
+  });
+  asphalt.wrapS = asphalt.wrapT = THREE.RepeatWrapping;
+  asphalt.repeat.set(100, 100);
+  const reflection = canvasTex(128, 256, (g, w, h) => {
+    const grad = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, h / 2);
+    grad.addColorStop(0, 'rgba(255,255,255,.65)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < 130; i++) {
+      g.fillStyle = `rgba(0,0,0,${0.2 + rnd() * 0.7})`;
+      g.fillRect(0, rnd() * h, w, 1 + rnd() * 3);
+    }
+  });
   const puffTex = radial(64, [
     [0, 'rgba(255,220,190,1)'],
     [1, 'rgba(255,220,190,0)'],
@@ -123,8 +145,8 @@ export function createTextures(rnd) {
         for (let x = 0; x < cols; x++) {
           if (floorDark || rnd() > lit) continue;
           g.fillStyle = rnd() < 0.8 ? '#ffd8ae' : rnd() < 0.5 ? '#bcd3ff' : '#9ee8d2';
-          g.globalAlpha = 0.5 + rnd() * 0.5;
-          g.fillRect(x * cell + 3, y * cell + 3, 6, 6);
+          g.globalAlpha = 0.25 + rnd() * 0.55;
+          g.fillRect(x * cell + 4, y * cell + 3, 4, 5);
         }
       }
     });
@@ -134,12 +156,12 @@ export function createTextures(rnd) {
   const windowSheets = [windowTex(0.38), windowTex(0.26), windowTex(0.5), windowTex(0.18)];
   const sheet = (w, h) => {
     const t = rnd.pick(windowSheets).clone();
-    t.repeat.set(Math.max(1, Math.round(w * 1.15)), Math.max(1, Math.round(h * 1.15)));
+    t.repeat.set(Math.max(1, Math.round(w * 0.32)), Math.max(1, Math.round(h * 0.32)));
     t.offset.set(rnd(), rnd());
     t.needsUpdate = true;
     return t;
   };
-  return { puffTex, softDot, glowTex, sheet };
+  return { puffTex, softDot, glowTex, sheet, asphalt, reflection };
 }
 
 /** the shared material set */
@@ -151,6 +173,8 @@ export function createMaterials(C = COLORS) {
     pink: mk(C.pink, { rough: 0.9 }),
     dark: mk(C.dark, { rough: 0.6 }),
     shade: mk(C.dark, { rough: 0.18 }),
+    scarf: mk(0x7ee8c7, { rough: 0.75, ds: true }),
+    lens: mk(0x84ddd9, { rough: 0.12, metal: 0.45, em: 0x347d89, ei: 0.25 }),
     patch: mk(0xffffff, { vc: true, rough: 0.82 }),
     tail: mk(0xffffff, { vc: true, rough: 0.82, ds: true }),
     deck: mk(C.deck, { rough: 0.45 }),
@@ -158,7 +182,7 @@ export function createMaterials(C = COLORS) {
     wheel: mk(C.cream, { rough: 0.5 }),
     hub: mk(C.hub, { rough: 0.4 }),
     metal: mk(C.metal, { rough: 0.35, metal: 0.6 }),
-    asphalt: mk(C.asphalt, { rough: 1 }),
+    asphalt: mk(C.asphalt, { rough: 0.36, metal: 0.22 }),
     paint: mk(C.paint, { rough: 1 }),
     curb: mk(C.curb, { rough: 1 }),
     pole: mk(C.pole, { rough: 0.6 }),
@@ -170,7 +194,7 @@ export function createMaterials(C = COLORS) {
     head: mk(0xfff1c8, { em: 0xfff1c8, ei: 1.3 }),
     tailLight: mk(0xff3b3b, { em: 0xff3b3b, ei: 1.2 }),
     cone: mk(C.cone, { rough: 0.7 }),
-    palm: mk(C.palm, { rough: 1 }),
+    palm: mk(0xffffff, { rough: 0.9, vc: true, ds: true }),
     bldg: mk(C.building, { rough: 1 }),
     manhole: mk(0x0e0d17, { rough: 0.9 }),
     bin: mk(0x232236, { rough: 0.8 }),

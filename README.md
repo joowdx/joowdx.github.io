@@ -5,7 +5,7 @@ Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Ev
 ## Stack
 
 - [Vite](https://vitejs.dev/) with plain ES modules and CSS, no UI framework
-- [Three.js](https://threejs.org/) for the hero: a calico cat looping ollies down a city street at midnight
+- [Three.js](https://threejs.org/) for the hero: a calico cat skating through a neon-lit Davao street, with detailed shop displays, feathered palms, wet-road reflections, light trails, and an animated bandana
 - Urbanist (display and body) and DM Mono (labels), self-hosted from `public/fonts/` under the OFL and preloaded to avoid a flash of fallback text
 
 ## Project structure
@@ -18,7 +18,7 @@ Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Ev
 | [`src/data/`](src/data/)                                       | Content: `experience.js`, `projects.js`, `capabilities.js`, `site.js`                                                |
 | [`src/sections/`](src/sections/)                               | Renderers for the data-driven sections (capabilities, experience, projects)                                          |
 | [`src/ui/`](src/ui/)                                           | Page behaviour: nav, menu, stars, scroll reveals, card tilt, local time, live-status probes                          |
-| [`src/scene/`](src/scene/)                                     | The Three.js hero: `index.js` (loop, camera, lights), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `materials.js` |
+| [`src/scene/`](src/scene/)                                     | The Three.js hero: `index.js` (loop, camera, lights, controls), `city.js`, `skater.js`, `tail.js`, `tricks.js`, `effects.js` (trails and landing effects), `materials.js` |
 | [`src/assets/`](src/assets/)                                   | Images imported by the data modules and the HTML                                                                     |
 | [`public/`](public/)                                           | Static files copied as-is: `favicon.ico`, `fonts/`                                                                   |
 | `dist/`                                                        | Build output of `npm run build`; ignored by git, CI builds its own                                                   |
@@ -31,6 +31,8 @@ Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Ev
 - Projects: [`src/data/projects.js`](src/data/projects.js). Give a project an `image` for a screenshot card or a `source` for a repo card; a `url` gets a live/offline badge. Set `earlier: true` to move it into the compact Earlier work list.
 - Capability cards: [`src/data/capabilities.js`](src/data/capabilities.js)
 - Scene feel: `TUNING` at the top of [`src/scene/index.js`](src/scene/index.js) (loop speed, jump height, pop angle, street speed, auto-trick cadence). Colours live in [`src/scene/materials.js`](src/scene/materials.js); `COLORS.fog` must match `--plum` in `styles.css` so the horizon has no seam.
+- Scene controls: tap the cat or the trick button to queue a trick; both support Enter/Space. Pause freezes the scene, and tricks can be previewed as still frames while paused. Reduced-motion preferences start the scene paused and disable camera parallax. Rendering stops outside the viewport and while the tab is hidden. Reflections and glow use procedural textures without postprocessing or additional dependencies.
+- Background details: `storefronts.js` builds the café, record store, corner store, and skate shop; `props.js` builds shaped cars, street furniture, and rooftop equipment; `palm.js` builds the trees. Fixed details are combined by material to keep draw calls down. All textures and models are generated locally.
 
 ## Prerequisites
 

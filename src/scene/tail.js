@@ -140,5 +140,10 @@ export function createTail({ torso, M, C = COLORS }) {
     geo.computeVertexNormals();
   }
 
-  return { update };
+  return {
+    update,
+    reset: () => {
+      ready = false;
+    },
+  };
 }
