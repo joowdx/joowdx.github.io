@@ -77,7 +77,7 @@ export const paint = (geo, base, patches) => {
 };
 
 export const canvasTex = (w, h, draw) => {
-  const c = document.createElement('canvas');
+  const c = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : document.createElement('canvas');
   c.width = w;
   c.height = h;
   draw(c.getContext('2d'), w, h);

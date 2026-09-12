@@ -2,18 +2,20 @@ import * as THREE from 'three';
 import { BOX, canvasTex, COLORS, CONE, CYL, mk, put, SPH } from './materials.js';
 import { buildPalm } from './palm.js';
 import { batchStatic, createProps } from './props.js';
+import { yieldToBrowser } from './schedule.js';
 import { createStorefronts } from './storefronts.js';
 
 /**
  * The street (in `stage`, which is rotated a little toward the camera) and the skyline (in `far`,
  * frontal). Everything on a belt scrolls along -x and wraps, so the cat rides in place forever.
  */
-export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
+export async function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
   const belts = [];
   const blinkers = [];
   const belt = (obj, speed, loop) => belts.push({ obj, speed, loop });
   const props = createProps(M);
   const storefronts = createStorefronts({ M, props });
+  await yieldToBrowser();
   const reflectionGeo = new THREE.PlaneGeometry(1, 1);
   const reflect = (parent, color, x, z, width, length, opacity = 0.4) => {
     const m = new THREE.Mesh(
@@ -107,6 +109,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
   }
   stage.add(curbBelt);
   belt(curbBelt, 1, 44);
+  await yieldToBrowser();
 
   // An alternating row of small businesses, with four distinct facade designs.
   const SHOP_LOOP = 44;
@@ -120,6 +123,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     stage.add(g);
     belt(g, 1, SHOP_LOOP);
     sx += w;
+    await yieldToBrowser();
   }
 
   // streetlights, each with a light pool on the road
@@ -183,6 +187,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     stage.add(palm.group);
     belt(palm.group, 1, LAMP_LOOP);
     palms.push(palm);
+    await yieldToBrowser();
   }
 
   // A short strand of warm café lights, suspended on a sagging cable.
@@ -236,6 +241,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     c.position.set(-16 + i * 26, 0, -2.25);
     stage.add(c);
     belt(c, 1, 52);
+    await yieldToBrowser();
   }
   // traffic cones on the dashed line
   for (let i = 0; i < 2; i++) {
@@ -296,6 +302,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     far.add(g);
     belt(g, 0.5, MID_LOOP);
     x += w + 1 + rnd() * 2.6;
+    await yieldToBrowser();
   }
   const FAR_LOOP = 96;
   for (let x = -FAR_LOOP / 2, i = 0; x < FAR_LOOP / 2 - 2; i++) {
@@ -318,6 +325,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     far.add(g);
     belt(g, 0.12, FAR_LOOP);
     x += w + 0.3 + rnd() * 1.1;
+    await yieldToBrowser();
   }
 
   // dust motes catching the lamp light
@@ -359,7 +367,7 @@ export function buildCity({ stage, far, M, C = COLORS, tex, rnd }) {
     const arr = dustGeo.attributes.position.array;
     for (let i = 0; i < DUST; i++) {
       arr[i * 3] -= v * 0.12 * dt;
-      arr[i * 3 + 1] += 0.14 * dt + Math.sin(elapsed * 1.3 + i) * 0.002;
+      arr[i * 3 + 1] += (0.14 + Math.sin(elapsed * 1.3 + i) * 0.12) * dt;
       if (arr[i * 3] < -7) arr[i * 3] += 14;
       if (arr[i * 3 + 1] > 4.2) arr[i * 3 + 1] = 0.1;
     }

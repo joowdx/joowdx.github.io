@@ -19,13 +19,24 @@ function stars() {
   let seed = 42;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; // deterministic layout
   const frag = document.createDocumentFragment();
+  const groups = new Map();
   for (let i = 0; i < 110; i++) {
+    const x = (rnd() * 100).toFixed(2);
+    const y = (rnd() * 100).toFixed(2);
+    const duration = (2.2 + rnd() * 3.4).toFixed(2);
+    const delay = (-rnd() * 5).toFixed(2);
+    const size = rnd() > 0.82 ? 3 : 2;
+    const key = `${size}/${i % 6}`;
+    if (!groups.has(key)) groups.set(key, { size, duration, delay, positions: [] });
+    groups.get(key).positions.push(`${x}vw ${y}vh var(--cream)`);
+  }
+  // Keep the same star field with twelve animated layers instead of 110.
+  for (const { size, duration, delay, positions } of groups.values()) {
     const s = document.createElement('i');
-    s.style.left = (rnd() * 100).toFixed(2) + '%';
-    s.style.top = (rnd() * 100).toFixed(2) + '%';
-    s.style.setProperty('--d', (2.2 + rnd() * 3.4).toFixed(2) + 's');
-    s.style.setProperty('--dl', (-rnd() * 5).toFixed(2) + 's');
-    if (rnd() > 0.82) s.style.width = s.style.height = '3px';
+    s.style.width = s.style.height = size + 'px';
+    s.style.setProperty('--d', duration + 's');
+    s.style.setProperty('--dl', delay + 's');
+    s.style.boxShadow = positions.join(',');
     frag.appendChild(s);
   }
   el.appendChild(frag);

@@ -17,6 +17,7 @@
     <meta property="og:url" content="https://joowdx.qzz.io" />
     <meta property="og:type" content="website" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="canonical" href="https://joowdx.qzz.io/" />
     <meta name="color-scheme" content="dark" />
     <!-- paint the midnight ground before any stylesheet arrives, so there is no white flash -->
     <style>
@@ -25,23 +26,10 @@
         color-scheme: dark;
       }
     </style>
-    <!-- if the module script never runs (blocked, too old a browser), still show the hero copy after a moment -->
-    <script>
-      setTimeout(function () {
-        document.documentElement.classList.add('fonts-ready');
-      }, 2000);
-    </script>
     <!-- self-hosted fonts (OFL, see public/fonts), preloaded so text is set in Urbanist from the first paint -->
     <link rel="preload" href="/fonts/urbanist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/dm-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="./styles.css" />
-    <noscript>
-      <style>
-        .hero-copy > * {
-          opacity: 1;
-        }
-      </style>
-    </noscript>
   </head>
   <body>
     <div class="stars" id="stars" aria-hidden="true"></div>
@@ -82,7 +70,7 @@
         <canvas
           class="stage"
           id="stage"
-          tabindex="0"
+          tabindex="-1"
           role="button"
           aria-label="A calico cat on a skateboard, doing an ollie on loop down a city street at night. Press to queue a trick."
         ></canvas>
@@ -110,10 +98,10 @@
         </div>
         <p class="hint" id="hint" aria-hidden="true"><span>Good things happen after hours.</span></p>
         <div class="scene-controls" aria-label="Skate scene controls">
-          <button class="trick-button" id="trick-button" type="button" aria-controls="stage">
+          <button class="trick-button" id="trick-button" type="button" aria-controls="stage" aria-label="Queue a kickflip" disabled>
             <span>Try a kickflip</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17 19 7M8 6h12v12" /></svg>
           </button>
-          <button class="pause-scene" id="pause-scene" type="button" aria-label="Pause animation" aria-pressed="false" aria-controls="stage">
+          <button class="pause-scene" id="pause-scene" type="button" aria-label="Pause animation" aria-pressed="false" aria-controls="stage" disabled>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path class="pause-icon" d="M9 6v12M15 6v12" />
               <path class="play-icon" d="m9 6 9 6-9 6Z" />
@@ -145,6 +133,8 @@
                 alt="Joowd sitting outdoors on a camping chair, cap and sunglasses on, palm trees behind"
                 width="300"
                 height="300"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <div class="now">

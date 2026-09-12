@@ -17,7 +17,8 @@ export function batchStatic(group) {
   for (const meshes of batches.values()) {
     if (meshes.length < 2) continue;
     const geometries = meshes.map((mesh) => {
-      const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+      // Copy buffers directly: subclass.clone() needlessly rebuilds rounded geometry first.
+      const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : new THREE.BufferGeometry().copy(mesh.geometry);
       return g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverse, mesh.matrixWorld));
     });
     const geometry = mergeGeometries(geometries);
@@ -27,6 +28,12 @@ export function batchStatic(group) {
     for (const mesh of meshes) mesh.removeFromParent();
     put(geometry, first.material, group, { shadow: first.castShadow, receive: first.receiveShadow });
   }
+  // These children never move relative to this group; only their parent travels down the street.
+  group.traverse((object) => {
+    if (object === group) return;
+    object.updateMatrix();
+    object.matrixAutoUpdate = false;
+  });
   return group;
 }
 

@@ -14,7 +14,7 @@ const actions = (p) => {
   if (p.url) {
     parts.push(`
       <span class="status" data-state="checking" data-url="${p.url}">
-        <a class="btn btn-primary btn-sm" href="${p.url}" target="_blank" rel="noopener noreferrer"><span class="live-label"></span>${icon('i-out')}</a>
+        <a class="btn btn-primary btn-sm" href="${p.url}" aria-label="Visit ${p.title}" target="_blank" rel="noopener noreferrer"><span class="live-label"></span>${icon('i-out')}</a>
         <i aria-hidden="true"></i><span class="status-text">checking</span>
       </span>`);
   }

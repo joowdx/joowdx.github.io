@@ -24,15 +24,30 @@ const probe = async (url) => {
 export function watchStatuses(intervalMs = 120000) {
   const els = [...document.querySelectorAll('.status[data-url]')];
   if (!els.length) return;
-  const check = () =>
-    els.forEach(async (el) => {
-      const state = await probe(el.dataset.url);
-      el.dataset.state = state;
-      const text = el.querySelector('.status-text');
-      if (text) text.textContent = state;
-    });
-  check();
+  const visible = new Set();
+  const pending = new WeakSet();
+  const check = async (el) => {
+    if (pending.has(el)) return;
+    pending.add(el);
+    const state = await probe(el.dataset.url);
+    el.dataset.state = state;
+    const text = el.querySelector('.status-text');
+    if (text) text.textContent = state;
+    pending.delete(el);
+  };
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          visible.add(entry.target);
+          check(entry.target);
+        } else visible.delete(entry.target);
+      }
+    },
+    { rootMargin: '200px' },
+  );
+  for (const el of els) observer.observe(el);
   setInterval(() => {
-    if (document.visibilityState === 'visible') check();
+    if (document.visibilityState === 'visible') visible.forEach(check);
   }, intervalMs);
 }

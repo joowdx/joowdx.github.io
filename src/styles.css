@@ -90,20 +90,19 @@ button {
 }
 .stars i {
   position: absolute;
+  left: 0;
+  top: 0;
   width: 2px;
   height: 2px;
   border-radius: 50%;
-  background: var(--cream);
   animation: twinkle var(--d, 3s) ease-in-out var(--dl, 0s) infinite alternate;
 }
 @keyframes twinkle {
   from {
     opacity: 0.1;
-    transform: scale(0.7);
   }
   to {
     opacity: 0.9;
-    transform: scale(1.2);
   }
 }
 main,
@@ -285,7 +284,7 @@ footer {
   min-height: 640px;
   overflow: hidden;
   isolation: isolate;
-  --horizon: 42%;
+  --horizon: 42svh;
 }
 .hero::after {
   content: '';
@@ -330,10 +329,10 @@ footer {
 .glow {
   position: absolute;
   left: 68%;
-  top: var(--horizon);
+  top: 0;
   width: min(130vw, 1600px);
   height: 55vh;
-  transform: translate(-50%, -84%);
+  transform: translate(-50%, calc(var(--horizon) - 84%));
   z-index: 0;
   pointer-events: none;
   background: radial-gradient(ellipse at 50% 100%, rgba(255, 135, 105, 0.25) 0%, rgba(80, 160, 179, 0.18) 42%, transparent 70%);
@@ -342,9 +341,9 @@ footer {
   position: absolute;
   left: 0;
   right: 0;
-  top: var(--horizon);
+  top: 0;
   height: 14vh;
-  transform: translateY(-50%);
+  transform: translateY(calc(var(--horizon) - 50%));
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(180deg, transparent 0%, rgba(255, 184, 140, 0.12) 50%, transparent 100%);
@@ -421,12 +420,7 @@ footer {
   opacity: clamp(0, calc(1 - var(--sy) / 460), 1);
 }
 .hero-copy > * {
-  opacity: 0; /* held until the fonts are usable; ui/fonts.js adds .fonts-ready to <html> */
-}
-.fonts-ready .hero-copy > * {
   opacity: 1;
-  animation: fadeUp 1s var(--ease) both;
-  animation-delay: calc(var(--i) * 100ms + 0.35s);
 }
 @keyframes fadeUp {
   from {
@@ -573,6 +567,10 @@ footer {
   background: rgba(126, 232, 199, 0.12);
   border-color: var(--mint);
   transform: translateY(-2px);
+}
+.scene-controls button:disabled {
+  cursor: progress;
+  opacity: 0.6;
 }
 .scene-controls svg {
   width: 18px;
@@ -1257,7 +1255,7 @@ footer {
   padding-top: 28px;
   flex-wrap: wrap;
   font-size: 14px;
-  color: var(--cream-45);
+  color: var(--cream-70);
 }
 .totop {
   display: inline-flex;
@@ -1320,8 +1318,7 @@ footer {
     transform: none;
     opacity: 1;
   }
-  .hero-copy > *,
-  .fonts-ready .hero-copy > * {
+  .hero-copy > * {
     opacity: 1;
     animation: none;
   }

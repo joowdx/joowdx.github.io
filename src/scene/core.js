@@ -1,0 +1,241 @@
+import * as THREE from 'three';
+import { buildCity } from './city.js';
+import { buildEffects } from './effects.js';
+import { COLORS, createMaterials, createTextures } from './materials.js';
+import { createRng } from './math.js';
+import { prepareScene } from './prepare.js';
+import { yieldToBrowser } from './schedule.js';
+import { buildSkater } from './skater.js';
+import { pose, TRICK_NAMES, TRICKS } from './tricks.js';
+
+/* Tweak these first. Everything else derives from them. */
+export const TUNING = {
+  loopSeconds: 3.2,
+  jumpHeight: 1.18,
+  popAngle: 0.62,
+  groundSpeed: 3.6,
+  autoTrickEvery: 2,
+};
+
+/** Graphics engine shared by the worker and the main-thread compatibility path. */
+export async function createScene({ canvas, width, height, coarse, pixelRatio, reducedMotion }, emit) {
+  const startedAt = performance.now();
+  let reduceMotion = reducedMotion;
+  let paused = reduceMotion;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(pixelRatio || 1, coarse ? 1.25 : 1.5));
+  // The soft contact shadow keeps the board grounded on phones without a second render pass.
+  renderer.shadowMap.enabled = !coarse;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(COLORS.fog, 8, 43);
+  const CAM_DIST = 7.4;
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 160);
+  const target = new THREE.Vector3();
+  const cameraBase = new THREE.Vector3();
+  const pointer = new THREE.Vector2();
+  const drift = new THREE.Vector2();
+  let mobile = false;
+
+  scene.add(new THREE.HemisphereLight(0x9cbbda, 0x1f162b, 1.25));
+  const key = new THREE.DirectionalLight(0xffc2a1, 2.6);
+  key.position.set(-3, 6, 5);
+  key.castShadow = true;
+  key.shadow.mapSize.set(coarse ? 1024 : 2048, coarse ? 1024 : 2048);
+  Object.assign(key.shadow.camera, { near: 1, far: 24, left: -4.5, right: 5.5, top: 5.5, bottom: -3 });
+  key.shadow.bias = -0.0004;
+  key.shadow.normalBias = 0.025;
+  key.shadow.radius = 3;
+  scene.add(key, key.target);
+  const rim = new THREE.DirectionalLight(0x6edbdf, 2.7);
+  rim.position.set(3, 3, -5);
+  scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xa69df5, 0.75);
+  fill.position.set(5, 2, 3);
+  scene.add(fill);
+  const streetBounce = new THREE.PointLight(0xff735a, 4, 7, 2);
+  streetBounce.position.set(-1, 0.6, 1.5);
+  scene.add(streetBounce);
+
+  const rnd = createRng(7);
+  await yieldToBrowser();
+  const tex = createTextures(rnd);
+  const M = createMaterials();
+  await yieldToBrowser();
+  const stage = new THREE.Group();
+  stage.rotation.y = -0.43;
+  scene.add(stage);
+  const far = new THREE.Group();
+  scene.add(far);
+  const city = await buildCity({ stage, far, M, C: COLORS, tex, rnd });
+  await yieldToBrowser();
+  const skater = buildSkater({ stage, M, C: COLORS, tex, rnd });
+  const effects = buildEffects({ stage, tex, rnd });
+  const builtAt = performance.now();
+  await yieldToBrowser();
+
+  const clock = new THREE.Clock();
+  let elapsed = 0,
+    prevT = 0,
+    loops = 0;
+  let trick = null,
+    queued = null,
+    nextTrick = 'kickflip';
+  let lastStatus = '';
+  let wasInAir = false;
+  const setHint = () => emit({ type: 'controls', paused, nextTrick });
+  function status(text) {
+    if (lastStatus === text) return;
+    lastStatus = text;
+    emit({ type: 'status', text });
+  }
+
+  function update(dt) {
+    elapsed += dt;
+    const t = (elapsed / TUNING.loopSeconds) % 1;
+    if (t < prevT) {
+      loops++;
+      trick = queued ?? (loops % TUNING.autoTrickEvery === 0 ? rnd.pick(TRICK_NAMES) : null);
+      queued = null;
+    }
+    const def = trick ? TRICKS[trick] : null;
+    if (!def?.manual && dt > 0) {
+      if (prevT < 0.47 && t >= 0.47) skater.puff(-0.9, 0, 3);
+      if (prevT < 0.855 && t >= 0.855) {
+        skater.puff(0, 0, 5);
+        effects.land();
+      }
+    }
+    prevT = t;
+    const P = pose(t, def, TUNING);
+    skater.update(dt, elapsed, t, P, def, TUNING.groundSpeed);
+    city.update(dt, elapsed, TUNING.groundSpeed);
+    effects.update(dt, P, TUNING.groundSpeed);
+    drift.lerp(pointer, 1 - Math.exp(-dt * 3));
+    camera.position.copy(cameraBase);
+    if (!reduceMotion && !mobile) {
+      camera.position.x += drift.x * 0.2 + Math.sin(elapsed * 0.23) * 0.055;
+      camera.position.y += drift.y * 0.09;
+    }
+    camera.lookAt(target);
+    status(queued ? `${queued} up next` : paused ? 'Taking it all in' : t > 0.46 && t < 0.9 ? trick || 'Ollie' : 'Just cruising');
+    const inAir = P.inAir > 0.5;
+    if (wasInAir !== inAir) emit({ type: 'air', inAir });
+    wasInAir = inAir;
+  }
+
+  const farPoint = new THREE.Vector3();
+  function resize(w, h) {
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    const aspect = w / h;
+    mobile = w <= 820;
+    camera.aspect = aspect;
+    camera.fov = Math.max(mobile ? 52 : 35, (2 * Math.atan(2.2 / (CAM_DIST * aspect)) * 180) / Math.PI);
+    cameraBase.set(0, mobile ? 2.4 : 2.1, CAM_DIST);
+    target.set(0, mobile ? 0.1 : 1.2, 0);
+    stage.position.x = mobile ? 0.12 : Math.min(1.8, aspect * 1.02);
+    camera.position.copy(cameraBase);
+    camera.lookAt(target);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    farPoint.set(0, 0, -1500).project(camera);
+    emit({ type: 'horizon', value: (((1 - farPoint.y) / 2) * h).toFixed(1) + 'px' });
+  }
+
+  let running = false,
+    onScreen = false,
+    frameId = 0,
+    lastFrame = 0;
+  const requestFrame = globalThis.requestAnimationFrame?.bind(globalThis) ?? ((fn) => setTimeout(() => fn(performance.now()), 16));
+  const cancelFrame = globalThis.cancelAnimationFrame?.bind(globalThis) ?? clearTimeout;
+  const frameInterval = 1000 / (coarse ? 30 : 60);
+  function render() {
+    renderer.render(scene, camera);
+  }
+  function frame(now) {
+    if (!running) return;
+    frameId = requestFrame(frame);
+    if (now - lastFrame < frameInterval) return;
+    lastFrame = now - ((now - lastFrame) % frameInterval);
+    update(Math.min(clock.getDelta(), 0.05));
+    render();
+  }
+  function sync() {
+    const should = onScreen && !paused;
+    if (should === running) return;
+    running = should;
+    if (running) {
+      clock.getDelta();
+      lastFrame = performance.now();
+      frameId = requestFrame(frame);
+    } else cancelFrame(frameId);
+  }
+  function still() {
+    update(0);
+    render();
+  }
+  resize(width, height);
+  await prepareScene(renderer, scene, camera);
+  const compiledAt = performance.now();
+
+  const doTrick = () => {
+    const selected = nextTrick;
+    if (paused) {
+      trick = selected;
+      queued = null;
+      elapsed = TUNING.loopSeconds * (TRICKS[selected].manual ? 0.6 : 0.66);
+      prevT = 0.66;
+      effects.reset();
+      skater.resetMotion();
+      still();
+      status(`${selected} · still frame`);
+    } else {
+      queued = selected;
+      if ((elapsed / TUNING.loopSeconds) % 1 < 0.26) {
+        trick = queued;
+        queued = null;
+      }
+    }
+    nextTrick = TRICK_NAMES[(TRICK_NAMES.indexOf(selected) + 1) % TRICK_NAMES.length];
+    setHint();
+  };
+  setHint();
+  still();
+  const timings = { constructionMs: builtAt - startedAt, prepareMs: compiledAt - builtAt, firstRenderMs: performance.now() - compiledAt };
+  return {
+    resize({ width, height }) {
+      resize(width, height);
+      if (!running) still();
+    },
+    visibility({ visible }) {
+      onScreen = visible;
+      sync();
+    },
+    motion({ reducedMotion }) {
+      reduceMotion = reducedMotion;
+      paused = reduceMotion;
+      pointer.set(0, 0);
+      drift.set(0, 0);
+      setHint();
+      sync();
+      if (paused) still();
+    },
+    pointer({ x, y }) {
+      if (!reduceMotion && !paused) pointer.set(x, y);
+    },
+    trick: doTrick,
+    pause() {
+      paused = !paused;
+      setHint();
+      sync();
+      if (paused) still();
+    },
+    inspect() {
+      return { running, paused, frames: renderer.info.render.frame, calls: renderer.info.render.calls, timings };
+    },
+  };
+}
