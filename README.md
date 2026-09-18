@@ -1,6 +1,6 @@
 # Joowdx
 
-Source for [joowdx.qzz.io](https://joowdx.qzz.io), a personal portfolio site. Every push to `master` is built and published to GitHub Pages ([joowdx.github.io](https://github.com/joowdx/joowdx.github.io)) by GitHub Actions.
+Source for [joowdx.dev](https://joowdx.dev), a personal portfolio site. Every push to `master` is built and published to GitHub Pages ([joowdx.github.io](https://github.com/joowdx/joowdx.github.io)) by GitHub Actions.
 
 ## Stack
 
@@ -62,4 +62,4 @@ Use the same mobile/desktop settings for before/after comparisons. The CLI uses 
 
 Push to `master`. The [deploy workflow](.github/workflows/deploy.yml) runs `npm ci` and `npm run build`, then publishes `dist/` to GitHub Pages (Settings → Pages → Source: GitHub Actions). The site updates a minute or two later; progress is under the Actions tab, where the workflow can also be re-run by hand. No build output is committed and there is no `gh-pages` branch.
 
-The custom domain **joowdx.qzz.io** is a Pages setting (Settings → Pages → Custom domain), not a file in the repo: Actions deployments ignore `CNAME` files. DNS points the domain at GitHub Pages (a `CNAME` record to `joowdx.github.io`, or GitHub's A/AAAA records).
+The custom domain **joowdx.dev** is a Pages setting (Settings → Pages → Custom domain), not a file in the repo: Actions deployments ignore `CNAME` files. DNS points the domain at GitHub Pages (a `CNAME` record to `joowdx.github.io`, or GitHub's A/AAAA records).

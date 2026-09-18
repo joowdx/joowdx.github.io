@@ -1,7 +1,7 @@
 export const site = {
   name: 'Joowd',
   handle: 'joowdx',
-  url: 'https://joowdx.qzz.io',
+  url: 'https://joowdx.dev',
   timeZone: 'Asia/Manila',
   links: {
     github: { name: 'GitHub', url: 'https://github.com/joowdx' },
